@@ -5,6 +5,7 @@
 <!-- BADGES -->
 
 Laravel package for handling attachments.
+A Laravel library for attaching files to Eloquent models
 
 ## Quick start
 
