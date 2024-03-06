@@ -1,0 +1,31 @@
+{
+  "name": "van-ons/laravel-attachment-library",
+  "description": "A laravel library for attaching files to Eloquent models",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dangelo Brusorio",
+      "email": "dangelo@van-ons.nl"
+    },
+    {
+      "name": "Danique Wijnalda",
+      "email": "danique@van-ons.nl"
+    }
+  ],
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "VanOns\\LaravelAttachmentLibrary\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "VanOns\\LaravelAttachmentLibrary\\Test\\": "tests"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
+    }
+  }
+}
