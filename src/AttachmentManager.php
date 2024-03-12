@@ -76,7 +76,7 @@ class AttachmentManager
     /**
      * Removes a file from disk and database
      */
-    public function remove(Attachment $file): bool
+    public function delete(Attachment $file): bool
     {
         $this->getFilesystem()->delete($file->fullPath);
 
@@ -98,6 +98,25 @@ class AttachmentManager
         $disk->move($file->fullPath, $path);
 
         $file->update(['name' => $name]);
+
+        $file->save();
+
+        return true;
+    }
+
+    /**
+     * Move file on disk and database
+     */
+    public function move(Attachment $file, string $desiredPath): bool
+    {
+        $disk = $this->getFilesystem();
+        $path = "{$desiredPath}/{$file->name}";
+
+        if($disk->exists($path)) return false;
+
+        $disk->move($file->fullPath, $path);
+
+        $file->update(['path' => $desiredPath]);
 
         $file->save();
 
