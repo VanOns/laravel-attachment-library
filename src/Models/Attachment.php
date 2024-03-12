@@ -2,12 +2,15 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Models;
 
-use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
-use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
+use Database\Factories\AttachmentFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Query\Builder;
+use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
+use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
  * @mixin AttachmentQueryBuilder
@@ -17,6 +20,11 @@ class Attachment extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'mime_type', 'disk', 'path'];
+
+    protected static function newFactory(): Factory
+    {
+        return AttachmentFactory::new();
+    }
 
     /**
      * Retrieve associated models of given class
@@ -49,7 +57,7 @@ class Attachment extends Model
     /**
      * Contains custom queries related to Attachment models
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param Builder $query
      */
     public function newEloquentBuilder($query): AttachmentQueryBuilder
     {

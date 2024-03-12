@@ -2,12 +2,12 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
-use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
  * Performs attachment related actions on database and filesystem
@@ -23,11 +23,6 @@ class AttachmentManager
         $this->model = Config::get('attachments.model', Attachment::class);
     }
 
-    protected function getFilesystem(): Filesystem
-    {
-        return Storage::disk($this->disk);
-    }
-
     public function setDisk(string $disk): AttachmentManager
     {
         $this->disk = $disk;
@@ -41,6 +36,11 @@ class AttachmentManager
     public function directories(?string $path = null): Collection
     {
         return collect($this->getFilesystem()->directories($path));
+    }
+
+    protected function getFilesystem(): Filesystem
+    {
+        return Storage::disk($this->disk);
     }
 
     /**
@@ -59,7 +59,9 @@ class AttachmentManager
         $path = "{$desiredPath}/{$file->getClientOriginalName()}";
         $disk = $this->getFilesystem();
 
-        if ($disk->exists($path)) return false;
+        if ($disk->exists($path)) {
+            return false;
+        }
 
         $disk->put($path, $file->getContent());
 
@@ -74,18 +76,6 @@ class AttachmentManager
     }
 
     /**
-     * Removes a file from disk and database
-     */
-    public function delete(Attachment $file): bool
-    {
-        $this->getFilesystem()->delete($file->fullPath);
-
-        $file->delete();
-
-        return true;
-    }
-
-    /**
      * Rename file on disk and database
      */
     public function rename(Attachment $file, string $name): bool
@@ -93,7 +83,9 @@ class AttachmentManager
         $disk = $this->getFilesystem();
         $path = "{$file->path}/{$name}";
 
-        if($disk->exists($path)) return false;
+        if ($disk->exists($path)) {
+            return false;
+        }
 
         $disk->move($file->fullPath, $path);
 
@@ -112,7 +104,9 @@ class AttachmentManager
         $disk = $this->getFilesystem();
         $path = "{$desiredPath}/{$file->name}";
 
-        if($disk->exists($path)) return false;
+        if ($disk->exists($path)) {
+            return false;
+        }
 
         $disk->move($file->fullPath, $path);
 
@@ -130,13 +124,17 @@ class AttachmentManager
     {
         $disk = $this->getFilesystem();
 
-        if($disk->exists($newPath)) return false;
+        if ($disk->exists($newPath)) {
+            return false;
+        }
 
         $disk->move($oldPath, $newPath);
 
         $filesInDirectory = $this->model::whereDisk($this->disk)->whereLikePath("{$oldPath}%")->get();
 
-        foreach ($filesInDirectory as $file) $file->update(['path' => str_replace($oldPath, $newPath, $file->path)]);
+        foreach ($filesInDirectory as $file) {
+            $file->update(['path' => str_replace($oldPath, $newPath, $file->path)]);
+        }
 
         return true;
     }
@@ -148,7 +146,9 @@ class AttachmentManager
     {
         $disk = $this->getFilesystem();
 
-        if($disk->exists($path)) return false;
+        if ($disk->exists($path)) {
+            return false;
+        }
 
         return $disk->makeDirectory($path);
     }
@@ -160,9 +160,23 @@ class AttachmentManager
     {
         $filesInDirectory = $this->model::whereDisk($this->disk)->whereLikePath("{$path}%")->get();
 
-        foreach ($filesInDirectory as $file) $file->delete();
+        foreach ($filesInDirectory as $file) {
+            $file->delete();
+        }
 
         $this->getFilesystem()->deleteDirectory($path);
+
+        return true;
+    }
+
+    /**
+     * Removes a file from disk and database
+     */
+    public function delete(Attachment $file): bool
+    {
+        $this->getFilesystem()->delete($file->fullPath);
+
+        $file->delete();
 
         return true;
     }

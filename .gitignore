@@ -144,5 +144,7 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode
 
 vendor
+vendor/
+.phpunit.result.cache
 .phpunit.cache
 .phpunit.result.cache

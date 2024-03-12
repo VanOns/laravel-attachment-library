@@ -2,8 +2,8 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Concerns;
 
-use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 trait HasAttachments

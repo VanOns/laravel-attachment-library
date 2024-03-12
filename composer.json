@@ -13,9 +13,14 @@
     }
   ],
   "require": {},
+  "require-dev": {
+    "orchestra/testbench": "^8.21",
+    "phpunit/phpunit": "^10.1"
+  },
   "autoload": {
     "psr-4": {
-      "VanOns\\LaravelAttachmentLibrary\\": "src"
+      "VanOns\\LaravelAttachmentLibrary\\": "src",
+      "Database\\Factories\\": "database/factories/"
     }
   },
   "autoload-dev": {
