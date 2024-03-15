@@ -15,7 +15,7 @@ class AttachmentQueryBuilder extends Builder
     }
 
     /**
-     * Filter files by path
+     * Filter files by exact path
      */
     public function wherePath(?string $path): AttachmentQueryBuilder
     {
@@ -23,10 +23,11 @@ class AttachmentQueryBuilder extends Builder
     }
 
     /**
-     * Filter files like path
+     * Filter all files in path including in subdirectories
      */
-    public function whereLikePath(?string $path): AttachmentQueryBuilder
+    public function whereInPath(string $path): AttachmentQueryBuilder
     {
-        return $this->where('path', 'LIKE', $path);
+        $path = preg_quote($path);
+        return $this->where('path', 'REGEXP', "^{$path}(/.*)?$");
     }
 }

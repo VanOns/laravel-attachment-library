@@ -57,7 +57,7 @@ class AttachmentManager
      *
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path
      */
-    public function upload(UploadedFile $file, ?string $desiredPath): void
+    public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
         $path = "{$desiredPath}/{$file->getClientOriginalName()}";
         $disk = $this->getFilesystem();
@@ -68,7 +68,7 @@ class AttachmentManager
 
         $disk->put($path, $file->getContent());
 
-        $this->model::create([
+        return $this->model::create([
             'name' => $file->getClientOriginalName(),
             'mime_type' => $file->getClientMimeType(),
             'disk' => $this->disk,
@@ -133,7 +133,7 @@ class AttachmentManager
 
         $disk->move($oldPath, $newPath);
 
-        $filesInDirectory = $this->model::whereDisk($this->disk)->whereLikePath("{$oldPath}%")->get();
+        $filesInDirectory = $this->model::whereDisk($this->disk)->whereInPath($oldPath)->get();
 
         foreach ($filesInDirectory as $file) {
             $file->update(['path' => str_replace($oldPath, $newPath, $file->path)]);
@@ -161,7 +161,7 @@ class AttachmentManager
      */
     public function deleteDirectory(?string $path): void
     {
-        $this->model::whereDisk($this->disk)->whereLikePath("{$path}%")->delete();
+        $this->model::whereDisk($this->disk)->whereInPath($path)->delete();
 
         $this->getFilesystem()->deleteDirectory($path);
     }
