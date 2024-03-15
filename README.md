@@ -4,8 +4,7 @@
 
 <!-- BADGES -->
 
-Laravel package for handling attachments.
-A Laravel library for attaching files to Eloquent models
+A Laravel library for attaching files to Eloquent models.
 
 ## Quick start
 
@@ -14,11 +13,6 @@ A Laravel library for attaching files to Eloquent models
 ```bash
 # Composer
 composer require van-ons/laravel-attachment-library
-
-# npm
-npm install @van-ons/laravel-attachment-library
-
-# etc.
 ```
 
 ### Usage
