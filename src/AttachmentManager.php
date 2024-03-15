@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -53,14 +54,16 @@ class AttachmentManager
 
     /**
      * Uploads a file to the selected disk under the desired path and creates a database entry
+     *
+     * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path
      */
-    public function upload(UploadedFile $file, ?string $desiredPath): bool
+    public function upload(UploadedFile $file, ?string $desiredPath): void
     {
         $path = "{$desiredPath}/{$file->getClientOriginalName()}";
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {
-            return false;
+            throw new DestinationAlreadyExistsException();
         }
 
         $disk->put($path, $file->getContent());
@@ -71,20 +74,20 @@ class AttachmentManager
             'disk' => $this->disk,
             'path' => $desiredPath
         ]);
-
-        return true;
     }
 
     /**
      * Rename file on disk and database
+     *
+     * @throws DestinationAlreadyExistsException if file in same path exists with conflicting name
      */
-    public function rename(Attachment $file, string $name): bool
+    public function rename(Attachment $file, string $name): void
     {
         $disk = $this->getFilesystem();
         $path = "{$file->path}/{$name}";
 
         if ($disk->exists($path)) {
-            return false;
+            throw new DestinationAlreadyExistsException();
         }
 
         $disk->move($file->fullPath, $path);
@@ -92,20 +95,20 @@ class AttachmentManager
         $file->update(['name' => $name]);
 
         $file->save();
-
-        return true;
     }
 
     /**
      * Move file on disk and database
+     *
+     * @throws DestinationAlreadyExistsException if conflicting file exists in desired path
      */
-    public function move(Attachment $file, string $desiredPath): bool
+    public function move(Attachment $file, string $desiredPath): void
     {
         $disk = $this->getFilesystem();
         $path = "{$desiredPath}/{$file->name}";
 
         if ($disk->exists($path)) {
-            return false;
+            throw new DestinationAlreadyExistsException();
         }
 
         $disk->move($file->fullPath, $path);
@@ -113,19 +116,19 @@ class AttachmentManager
         $file->update(['path' => $desiredPath]);
 
         $file->save();
-
-        return true;
     }
 
     /**
      * Rename directory on disk and update children on disk and database
+     *
+     * @throws DestinationAlreadyExistsException if conflicting directory name exists
      */
-    public function renameDirectory(string $oldPath, string $newPath): bool
+    public function renameDirectory(string $oldPath, string $newPath): void
     {
         $disk = $this->getFilesystem();
 
         if ($disk->exists($newPath)) {
-            return false;
+            throw new DestinationAlreadyExistsException();
         }
 
         $disk->move($oldPath, $newPath);
@@ -135,50 +138,54 @@ class AttachmentManager
         foreach ($filesInDirectory as $file) {
             $file->update(['path' => str_replace($oldPath, $newPath, $file->path)]);
         }
-
-        return true;
     }
 
     /**
      * Create a directory under a specified path
+     *
+     * @throws DestinationAlreadyExistsException if conflicting directory name exists
      */
-    public function createDirectory(?string $path): bool
+    public function createDirectory(?string $path): void
     {
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {
-            return false;
+            throw new DestinationAlreadyExistsException();
         }
 
-        return $disk->makeDirectory($path);
+        $disk->makeDirectory($path);
     }
 
     /**
      * Delete directory and remove all files/directory recursively
      */
-    public function deleteDirectory(?string $path): bool
+    public function deleteDirectory(?string $path): void
     {
-        $filesInDirectory = $this->model::whereDisk($this->disk)->whereLikePath("{$path}%")->get();
-
-        foreach ($filesInDirectory as $file) {
-            $file->delete();
-        }
+        $this->model::whereDisk($this->disk)->whereLikePath("{$path}%")->delete();
 
         $this->getFilesystem()->deleteDirectory($path);
-
-        return true;
     }
 
     /**
      * Removes a file from disk and database
      */
-    public function delete(Attachment $file): bool
+    public function delete(Attachment $file): void
     {
         $this->getFilesystem()->delete($file->fullPath);
 
         $file->delete();
+    }
 
-        return true;
+    /**
+     * Checks if a path exists on the disk
+     *
+     * Examples:
+     * - A path like: 'foo/bar'
+     * - A file like: 'foo/bar/foobar.jpg'
+     */
+    public function destinationExists(string $path): bool
+    {
+        return $this->getFilesystem()->exists($path);
     }
 
     public function getUrl(Attachment $file): string|bool
