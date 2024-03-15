@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 class AttachmentQueryBuilder extends Builder
 {
     /**
-     * Filter files by disk
+     * Filter files by disk.
      */
     public function whereDisk(string $disk): AttachmentQueryBuilder
     {
@@ -15,7 +15,7 @@ class AttachmentQueryBuilder extends Builder
     }
 
     /**
-     * Filter files by exact path
+     * Filter files by exact path.
      */
     public function wherePath(?string $path): AttachmentQueryBuilder
     {
@@ -23,7 +23,7 @@ class AttachmentQueryBuilder extends Builder
     }
 
     /**
-     * Filter all files in path including in subdirectories
+     * Filter all files in path including in subdirectories.
      */
     public function whereInPath(string $path): AttachmentQueryBuilder
     {

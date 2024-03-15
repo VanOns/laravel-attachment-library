@@ -10,7 +10,7 @@ use VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider;
 class TestCase extends OrchestraTestCase
 {
     /**
-     * Load package service provider
+     * Load package service provider.
      * @param $app Application
      */
     protected function getPackageProviders($app): array
@@ -19,7 +19,7 @@ class TestCase extends OrchestraTestCase
     }
 
     /**
-     * Load package alias
+     * Load package alias.
      * @param $app Application
      */
     protected function getPackageAliases($app): array

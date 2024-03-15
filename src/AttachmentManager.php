@@ -11,7 +11,7 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
- * Performs attachment related actions on database and filesystem
+ * Performs attachment related actions on database and filesystem.
  */
 class AttachmentManager
 {
@@ -32,7 +32,7 @@ class AttachmentManager
     }
 
     /**
-     * Retrieves all directories under a given path
+     * Retrieves all directories under a given path.
      */
     public function directories(?string $path = null): Collection
     {
@@ -45,7 +45,7 @@ class AttachmentManager
     }
 
     /**
-     * Retrieve files under a path
+     * Retrieve files under a given path.
      */
     public function files(?string $path): Collection
     {
@@ -53,9 +53,9 @@ class AttachmentManager
     }
 
     /**
-     * Uploads a file to the selected disk under the desired path and creates a database entry
+     * Uploads a file to the selected disk under the desired path and creates a database entry.
      *
-     * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path
+     * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
@@ -77,9 +77,9 @@ class AttachmentManager
     }
 
     /**
-     * Rename file on disk and database
+     * Rename file on disk and database.
      *
-     * @throws DestinationAlreadyExistsException if file in same path exists with conflicting name
+     * @throws DestinationAlreadyExistsException if file in same path exists with conflicting name.
      */
     public function rename(Attachment $file, string $name): void
     {
@@ -98,9 +98,9 @@ class AttachmentManager
     }
 
     /**
-     * Move file on disk and database
+     * Move file on disk and database.
      *
-     * @throws DestinationAlreadyExistsException if conflicting file exists in desired path
+     * @throws DestinationAlreadyExistsException if conflicting file exists in desired path.
      */
     public function move(Attachment $file, string $desiredPath): void
     {
@@ -119,9 +119,9 @@ class AttachmentManager
     }
 
     /**
-     * Rename directory on disk and update children on disk and database
+     * Rename directory on disk and update children on disk and database.
      *
-     * @throws DestinationAlreadyExistsException if conflicting directory name exists
+     * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      */
     public function renameDirectory(string $oldPath, string $newPath): void
     {
@@ -141,9 +141,9 @@ class AttachmentManager
     }
 
     /**
-     * Create a directory under a specified path
+     * Create a directory under a specified path.
      *
-     * @throws DestinationAlreadyExistsException if conflicting directory name exists
+     * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      */
     public function createDirectory(?string $path): void
     {
@@ -157,7 +157,7 @@ class AttachmentManager
     }
 
     /**
-     * Delete directory and remove all files/directory recursively
+     * Delete directory and remove all files/directory recursively.
      */
     public function deleteDirectory(?string $path): void
     {
@@ -167,7 +167,7 @@ class AttachmentManager
     }
 
     /**
-     * Removes a file from disk and database
+     * Removes a file from disk and database.
      */
     public function delete(Attachment $file): void
     {
@@ -177,7 +177,7 @@ class AttachmentManager
     }
 
     /**
-     * Checks if a path exists on the disk
+     * Checks if a path exists on the disk.
      *
      * Examples:
      * - A path like: 'foo/bar'
@@ -188,6 +188,9 @@ class AttachmentManager
         return $this->getFilesystem()->exists($path);
     }
 
+    /**
+     * Retrieves full url from disk.
+     */
     public function getUrl(Attachment $file): string|bool
     {
         return Storage::disk($file->disk)->url($file->full_path);
