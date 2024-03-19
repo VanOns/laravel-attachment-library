@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfiguration;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -19,10 +20,29 @@ class AttachmentManager
 
     protected string $model;
 
+    /**
+     * @throws IncompatibleModelConfiguration
+     */
     public function __construct()
     {
         $this->disk = Config::get('attachments.disk', 'public');
         $this->model = Config::get('attachments.model', Attachment::class);
+
+        $this->ensureCompatibleModel();
+    }
+
+    /**
+     * Throw exception if configured model is not a instance of the Attachment model.
+     *
+     * @throws IncompatibleModelConfiguration
+     */
+    private function ensureCompatibleModel(): void
+    {
+        $instanceOfAttachment = (new $this->model) instanceof Attachment;
+
+        if (! $instanceOfAttachment) {
+            throw new IncompatibleModelConfiguration();
+        }
     }
 
     public function setDisk(string $disk): AttachmentManager
@@ -35,7 +55,7 @@ class AttachmentManager
     /**
      * Return all directories under a given path.
      *
-     * @param ?string $path Use NULL for root of disk.
+     * @param  ?string  $path  Use NULL for root of disk.
      */
     public function directories(?string $path = null): Collection
     {
@@ -50,7 +70,7 @@ class AttachmentManager
     /**
      * Return files under a given path.
      *
-     * @param ?string $path Use NULL for root of disk.
+     * @param  ?string  $path  Use NULL for root of disk.
      */
     public function files(?string $path): Collection
     {
@@ -60,8 +80,9 @@ class AttachmentManager
     /**
      * Uploads a file to the selected disk under the desired path and creates a database entry.
      *
+     * @param  ?string  $desiredPath  Use NULL for root of disk.
+     *
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
-     * @param ?string $desiredPath Use NULL for root of disk.
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {

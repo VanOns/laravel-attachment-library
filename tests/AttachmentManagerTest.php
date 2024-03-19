@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfiguration;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -327,6 +328,15 @@ class AttachmentManagerTest extends TestCase
         self::$attachmentManager->setDisk($this->faker->firstName);
 
         self::assertEmpty(self::$attachmentManager->files(null));
+    }
+
+    public function testAssertEnsureCompatibleModel()
+    {
+        self::expectException(IncompatibleModelConfiguration::class);
+
+        Config::set('attachments.model', IncompatibleModel::class);
+
+        new AttachmentManager();
     }
 
     protected function setUp(): void
