@@ -13,15 +13,14 @@
     }
   ],
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.52",
     "larastan/larastan": "^2.9",
+    "laravel/pint": "^1.14",
     "orchestra/testbench": "^8.21",
     "phpunit/phpunit": "^10.1"
   },
   "scripts" : {
-    "check-lint": "./vendor/bin/php-cs-fixer fix --dry-run --diff",
-    "lint": "./vendor/bin/php-cs-fixer fix",
-    "phpstan": "./vendor/bin/phpstan analyse --memory-limit 2G"
+    "analyse": "./vendor/bin/phpstan analyse",
+    "format": "./vendor/bin/pint"
   },
   "autoload": {
     "psr-4": {
