@@ -13,6 +13,12 @@ use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
+ * @property string $name
+ * @property string $mime_type
+ * @property string $disk
+ * @property string $path
+ * @property string $fullPath
+ *
  * @mixin AttachmentQueryBuilder
  */
 class Attachment extends Model
@@ -40,7 +46,7 @@ class Attachment extends Model
     public function fullPath(): Attribute
     {
         return Attribute::make(
-            get: fn() => implode('/', array_filter([$this->path, $this->name]))
+            get: fn () => implode('/', array_filter([$this->path, $this->name]))
         );
     }
 
@@ -50,14 +56,14 @@ class Attachment extends Model
     public function url(): Attribute
     {
         return Attribute::make(
-            get: fn() => AttachmentManager::getUrl($this)
+            get: fn () => AttachmentManager::getUrl($this)
         );
     }
 
     /**
      * Contains custom queries related to Attachment models.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     public function newEloquentBuilder($query): AttachmentQueryBuilder
     {

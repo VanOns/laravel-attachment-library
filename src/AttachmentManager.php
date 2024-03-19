@@ -16,6 +16,7 @@ use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 class AttachmentManager
 {
     protected string $disk;
+
     protected string $model;
 
     public function __construct()
@@ -72,7 +73,7 @@ class AttachmentManager
             'name' => $file->getClientOriginalName(),
             'mime_type' => $file->getClientMimeType(),
             'disk' => $this->disk,
-            'path' => $desiredPath
+            'path' => $desiredPath,
         ]);
     }
 
@@ -193,6 +194,6 @@ class AttachmentManager
      */
     public function getUrl(Attachment $file): string|bool
     {
-        return Storage::disk($file->disk)->url($file->full_path);
+        return Storage::disk($file->disk)->url($file->fullPath);
     }
 }

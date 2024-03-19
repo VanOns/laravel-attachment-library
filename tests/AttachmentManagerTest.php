@@ -17,6 +17,7 @@ class AttachmentManagerTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected static string $disk = 'test';
+
     protected static ?AttachmentManager $attachmentManager;
 
     public function testAssertFilesEmpty()

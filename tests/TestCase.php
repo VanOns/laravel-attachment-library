@@ -11,7 +11,8 @@ class TestCase extends OrchestraTestCase
 {
     /**
      * Load package service provider.
-     * @param $app Application
+     *
+     * @param  $app  Application
      */
     protected function getPackageProviders($app): array
     {
@@ -20,7 +21,8 @@ class TestCase extends OrchestraTestCase
 
     /**
      * Load package alias.
-     * @param $app Application
+     *
+     * @param  $app  Application
      */
     protected function getPackageAliases($app): array
     {

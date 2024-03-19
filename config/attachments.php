@@ -11,5 +11,5 @@ return [
     /**
      * Database representation of the physical file.
      */
-    'model' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class
+    'model' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
 ];
