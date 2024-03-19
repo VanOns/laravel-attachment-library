@@ -33,7 +33,7 @@ class Attachment extends Model
     }
 
     /**
-     * Retrieve associated models of given class.
+     * Return associated models of given class.
      */
     public function related(string $class): MorphToMany
     {
@@ -41,7 +41,7 @@ class Attachment extends Model
     }
 
     /**
-     * Return full path.
+     * Return path from root of disk including file name and extension.
      */
     public function fullPath(): Attribute
     {
@@ -51,7 +51,7 @@ class Attachment extends Model
     }
 
     /**
-     * Return public url, may be temporary if stored in S3.
+     * Return public url from AttachmentManager, may be temporary if stored in S3.
      */
     public function url(): Attribute
     {
@@ -61,7 +61,7 @@ class Attachment extends Model
     }
 
     /**
-     * Contains custom queries related to Attachment models.
+     * Bind AttachmentQueryBuilder to this model.
      *
      * @param  Builder  $query
      */

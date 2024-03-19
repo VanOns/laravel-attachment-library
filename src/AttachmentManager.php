@@ -33,7 +33,9 @@ class AttachmentManager
     }
 
     /**
-     * Retrieves all directories under a given path.
+     * Return all directories under a given path.
+     *
+     * @param ?string $path Use NULL for root of disk.
      */
     public function directories(?string $path = null): Collection
     {
@@ -46,7 +48,9 @@ class AttachmentManager
     }
 
     /**
-     * Retrieve files under a given path.
+     * Return files under a given path.
+     *
+     * @param ?string $path Use NULL for root of disk.
      */
     public function files(?string $path): Collection
     {
@@ -57,6 +61,7 @@ class AttachmentManager
      * Uploads a file to the selected disk under the desired path and creates a database entry.
      *
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
+     * @param ?string $desiredPath Use NULL for root of disk.
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
@@ -146,7 +151,7 @@ class AttachmentManager
      *
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      */
-    public function createDirectory(?string $path): void
+    public function createDirectory(string $path): void
     {
         $disk = $this->getFilesystem();
 
@@ -160,7 +165,7 @@ class AttachmentManager
     /**
      * Delete directory and remove all files/directory recursively.
      */
-    public function deleteDirectory(?string $path): void
+    public function deleteDirectory(string $path): void
     {
         $this->model::whereDisk($this->disk)->whereInPath($path)->delete();
 
@@ -190,7 +195,7 @@ class AttachmentManager
     }
 
     /**
-     * Retrieves full url from disk.
+     * Return full url to attachment.
      */
     public function getUrl(Attachment $file): string|bool
     {

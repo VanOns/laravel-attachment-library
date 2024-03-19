@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
 class AttachmentManager extends Facade
 {
     /**
-     * Get the registered name of the component.
+     * Return the registered name of the component.
      */
     protected static function getFacadeAccessor(): string
     {
