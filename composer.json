@@ -12,10 +12,15 @@
       "email": "danique@van-ons.nl"
     }
   ],
-  "require": {},
   "require-dev": {
+    "larastan/larastan": "^2.9",
+    "laravel/pint": "^1.14",
     "orchestra/testbench": "^8.21",
     "phpunit/phpunit": "^10.1"
+  },
+  "scripts" : {
+    "analyse": "./vendor/bin/phpstan analyse",
+    "format": "./vendor/bin/pint"
   },
   "autoload": {
     "psr-4": {
@@ -30,7 +35,12 @@
   },
   "extra": {
     "laravel": {
-      "providers": "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
+      "providers": [
+        "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
+      ]
     }
+  },
+  "config" : {
+    "sort-packages": true
   }
 }
