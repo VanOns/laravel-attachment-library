@@ -2,13 +2,15 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
+use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfiguration;
+use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -21,7 +23,7 @@ class AttachmentManager
     protected string $model;
 
     /**
-     * @throws IncompatibleModelConfiguration
+     * @throws IncompatibleModelConfigurationException
      */
     public function __construct()
     {
@@ -34,17 +36,34 @@ class AttachmentManager
     /**
      * Throw exception if configured model is not a instance of the Attachment model.
      *
-     * @throws IncompatibleModelConfiguration
+     * @throws IncompatibleModelConfigurationException
      */
-    private function ensureCompatibleModel(): void
+    protected function ensureCompatibleModel(): void
     {
         $instanceOfAttachment = (new $this->model) instanceof Attachment;
 
         if (! $instanceOfAttachment) {
-            throw new IncompatibleModelConfiguration();
+            throw new IncompatibleModelConfigurationException();
         }
     }
 
+    /**
+     * Validate filename and throw exception if validation fails.
+     *
+     * @throws DisallowedCharacterException if file name contains disallowed characters.
+     */
+    protected function validateFilename(string $name): void
+    {
+        $characters = Config::get('attachments.allowed_characters');
+
+        if (preg_match($characters, $name)) {
+            throw new DisallowedCharacterException();
+        }
+    }
+
+    /**
+     * Set the disk for file interactions.
+     */
     public function setDisk(string $disk): AttachmentManager
     {
         $this->disk = $disk;
@@ -110,6 +129,8 @@ class AttachmentManager
      */
     public function rename(Attachment $file, string $name): void
     {
+        $this->validateFilename($name);
+
         $disk = $this->getFilesystem();
         $path = "{$file->path}/{$name}";
 

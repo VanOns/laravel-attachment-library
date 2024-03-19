@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfiguration;
+use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -332,11 +333,56 @@ class AttachmentManagerTest extends TestCase
 
     public function testAssertEnsureCompatibleModel()
     {
-        self::expectException(IncompatibleModelConfiguration::class);
+        self::expectException(IncompatibleModelConfigurationException::class);
 
         Config::set('attachments.model', IncompatibleModel::class);
 
         new AttachmentManager();
+    }
+
+    /**
+     * @dataProvider fileNameProvider
+     */
+    public function testAssertRenameFileWithDisallowedCharacters($name, $expectsException)
+    {
+        if ($expectsException) {
+            self::expectException(DisallowedCharacterException::class);
+        }
+
+        $file = UploadedFile::fake()->image($this->faker->firstName);
+
+        $attachment = self::$attachmentManager->upload($file, null);
+
+        self::$attachmentManager->rename($attachment, $name);
+
+        self::assertEquals($attachment->name, $name);
+    }
+
+    public static function fileNameProvider(): array
+    {
+        return [
+
+            // Valid file names
+            ['test.jpg', false],
+            ['t-est.jpg', false],
+            ['t_est.jpg', false],
+            ['tést.jpg', false],
+            ['.env', false],
+            ['.jpg', false],
+            ['test', false],
+            ['t est.jpg', false],
+            ['t est.jpg', false], // Non-breaking space
+
+            // Invalid file names
+            ['t!est.jpg', true],
+            ['t/est.jpg', true],
+            ['t/est.jpg', true],
+            ["te\ns/t.jpg", true],
+            ['🤠.jpg', true],
+            ["'test'.jpg", true],
+            ['.jpg', true], // null
+
+        ];
     }
 
     protected function setUp(): void
@@ -347,6 +393,7 @@ class AttachmentManagerTest extends TestCase
 
         Config::set('attachments.disk', self::$disk);
         Config::set('attachments.model', Attachment::class);
+        Config::set('attachments.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         self::$attachmentManager = new AttachmentManager();
     }
