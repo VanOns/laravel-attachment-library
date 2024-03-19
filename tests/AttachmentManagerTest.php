@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -67,11 +68,11 @@ class AttachmentManagerTest extends TestCase
     {
         $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
 
-        self::$attachmentManager->upload($file, null);
+        $attachment = self::$attachmentManager->upload($file, null);
 
-        $this->assertEquals(Attachment::find(1)->get(), self::$attachmentManager->files(null));
+        $this->assertEquals(Attachment::find($attachment->id)->get(), self::$attachmentManager->files(null));
 
-        self::$attachmentManager->delete(Attachment::find(1));
+        self::$attachmentManager->delete($attachment);
 
         $this->assertEmpty(self::$attachmentManager->files(null));
         $this->assertEmpty(Attachment::whereDisk(self::$disk)->wherePath(null)->get());
@@ -83,15 +84,30 @@ class AttachmentManagerTest extends TestCase
 
         $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
         self::$attachmentManager->createDirectory($path);
-        self::$attachmentManager->upload($file, null);
+        $attachment = self::$attachmentManager->upload($file, null);
 
         $this->assertNotEmpty(self::$attachmentManager->files(null));
         $this->assertEmpty(self::$attachmentManager->files($path));
 
-        self::$attachmentManager->move(Attachment::find(1), $path);
+        self::$attachmentManager->move($attachment, $path);
 
         $this->assertEmpty(self::$attachmentManager->files(null));
         $this->assertNotEmpty(self::$attachmentManager->files($path));
+    }
+
+    public function testAssertRenameFile()
+    {
+        $fileNameA = "{$this->faker->firstName}.jpg";
+        $fileNameB = "{$this->faker->firstName}.jpg";
+        $file = UploadedFile::fake()->image($fileNameA);
+
+        $attachment = self::$attachmentManager->upload($file, null);
+
+        self::assertEquals($attachment->name, $fileNameA);
+
+        self::$attachmentManager->rename($attachment, $fileNameB);
+
+        self::assertEquals($attachment->name, $fileNameB);
     }
 
     public function testAssertDirectoriesEmpty()
@@ -182,38 +198,92 @@ class AttachmentManagerTest extends TestCase
         $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
 
         self::$attachmentManager->createDirectory($directoryNameA);
-        self::$attachmentManager->upload($file, $directoryNameA);
+        $attachment = self::$attachmentManager->upload($file, $directoryNameA);
 
-        $this->assertEquals(Attachment::find(1)->path, $directoryNameA);
+        $this->assertEquals($attachment->path, $directoryNameA);
 
         self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
 
-        $this->assertEquals(Attachment::find(1)->path, $directoryNameB);
+        $attachment->refresh();
+        $this->assertEquals($attachment->path, $directoryNameB);
     }
 
-    public function testAssertPreventDuplicates()
+    public function testAssertPreventDuplicateOnUpload()
     {
-        $directoryNameA = $this->faker->firstName();
-        $directoryNameB = $this->faker->firstName();
-        $fileNameB = "{$this->faker->firstName}.jpg";
+        self::expectException(DestinationAlreadyExistsException::class);
 
-        $fileA = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-        $fileB = UploadedFile::fake()->image($fileNameB);
+        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
+
+        self::$attachmentManager->upload($file, null);
+        self::$attachmentManager->upload($file, null);
+    }
+
+    public function testAssertPreventDuplicateOnFileRename()
+    {
+        self::expectException(DestinationAlreadyExistsException::class);
+
+        $fileName = "{$this->faker->firstName}.jpg";
+        $fileA = UploadedFile::fake()->image($fileName);
+        $fileB = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
+
+        self::$attachmentManager->upload($fileA, null);
+        $attachment = self::$attachmentManager->upload($fileB, null);
+
+        self::$attachmentManager->rename($attachment, $fileName);
+    }
+
+    public function testAssertPreventDuplicateOnFileMove()
+    {
+        self::expectException(DestinationAlreadyExistsException::class);
+
+        $directoryName = $this->faker->firstName;
+        self::$attachmentManager->createDirectory($directoryName);
+
+        $fileName = $this->faker->firstName;
+        $fileA = UploadedFile::fake()->image($fileName);
+        self::$attachmentManager->upload($fileA, $directoryName);
+
+        $fileB = UploadedFile::fake()->image($fileName);
+        $attachment = self::$attachmentManager->upload($fileB, null);
+
+        self::$attachmentManager->move($attachment, $directoryName);
+    }
+
+    public function testAssertPreventDuplicateOnDirectoryRename()
+    {
+        self::expectException(DestinationAlreadyExistsException::class);
+
+        $directoryNameA = $this->faker->firstName;
+        $directoryNameB = $this->faker->firstName;
 
         self::$attachmentManager->createDirectory($directoryNameA);
         self::$attachmentManager->createDirectory($directoryNameB);
+
+        self::$attachmentManager->renameDirectory($directoryNameB, $directoryNameA);
+    }
+
+    public function testAssertPreventDuplicateOnDirectoryCreate()
+    {
+        self::expectException(DestinationAlreadyExistsException::class);
+
+        $directoryNameA = $this->faker->firstName;
+
+        self::$attachmentManager->createDirectory($directoryNameA);
+        self::$attachmentManager->createDirectory($directoryNameA);
+    }
+
+    public function testAssertPreventDuplicateOnMove()
+    {
+        self::expectException(DestinationAlreadyExistsException::class);
+
+        $fileName = "{$this->faker->firstName}.jpg";
+        $fileA = UploadedFile::fake()->image($fileName);
+        $fileB = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
+
         self::$attachmentManager->upload($fileA, null);
-        self::$attachmentManager->upload($fileB, null);
+        $attachment = self::$attachmentManager->upload($fileB, null);
 
-        self::assertFalse(self::$attachmentManager->upload($fileA, null));
-        self::assertFalse(self::$attachmentManager->createDirectory($directoryNameA));
-        self::assertFalse(self::$attachmentManager->rename(Attachment::find(1), $fileNameB));
-        self::assertFalse(self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB));
-
-        self::$attachmentManager->move(Attachment::find(1), $directoryNameA);
-        self::$attachmentManager->rename(Attachment::find(1), $fileNameB);
-
-        self::assertFalse(self::$attachmentManager->move(Attachment::find(2), $directoryNameA));
+        self::$attachmentManager->rename($attachment, $fileName);
     }
 
     public function testAssertGetUrl()
@@ -221,9 +291,28 @@ class AttachmentManagerTest extends TestCase
         $fileName = "{$this->faker->firstName}.jpg";
         $file = UploadedFile::fake()->image($fileName);
 
+        $attachment = self::$attachmentManager->upload($file, null);
+
+        self::assertEquals("/storage/{$fileName}", self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
+    }
+
+    public function testAssertDestinationExists()
+    {
+        $fileName = "{$this->faker->firstName}.jpg";
+        $file = UploadedFile::fake()->image($fileName);
         self::$attachmentManager->upload($file, null);
 
-        self::assertEquals("/storage/{$fileName}", self::$attachmentManager->getUrl(Attachment::find(1)));
+        $directoryName = $this->faker->firstName;
+        self::$attachmentManager->createDirectory($directoryName);
+        self::$attachmentManager->upload($file, $directoryName);
+
+        self::assertTrue(self::$attachmentManager->destinationExists($fileName));
+        self::assertTrue(self::$attachmentManager->destinationExists($directoryName));
+        self::assertTrue(self::$attachmentManager->destinationExists("{$directoryName}/{$fileName}"));
+
+        self::assertFalse(self::$attachmentManager->destinationExists('test.jpg'));
+        self::assertFalse(self::$attachmentManager->destinationExists('test'));
+        self::assertFalse(self::$attachmentManager->destinationExists('test/test.jpg'));
     }
 
     public function testAssertSetDisk()
@@ -253,6 +342,8 @@ class AttachmentManagerTest extends TestCase
 
     protected function tearDown(): void
     {
+        parent::tearDown();
+
         Storage::fake(self::$disk);
     }
 }

@@ -27,7 +27,7 @@ class AttachmentQueryBuilder extends Builder
      */
     public function whereInPath(string $path): AttachmentQueryBuilder
     {
-        $path = preg_quote($path);
-        return $this->where('path', 'REGEXP', "^{$path}(/.*)?$");
+        return $this->where('path', '=', $path)
+            ->orWhere('path', 'LIKE', "{$path}/%");
     }
 }
