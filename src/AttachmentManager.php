@@ -2,7 +2,6 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
-use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -44,20 +43,6 @@ class AttachmentManager
 
         if (! $instanceOfAttachment) {
             throw new IncompatibleModelConfigurationException();
-        }
-    }
-
-    /**
-     * Validate filename and throw exception if validation fails.
-     *
-     * @throws DisallowedCharacterException if file name contains disallowed characters.
-     */
-    protected function validateFilename(string $name): void
-    {
-        $characters = Config::get('attachments.allowed_characters');
-
-        if (preg_match($characters, $name)) {
-            throw new DisallowedCharacterException();
         }
     }
 
@@ -126,10 +111,11 @@ class AttachmentManager
      * Rename file on disk and database.
      *
      * @throws DestinationAlreadyExistsException if file in same path exists with conflicting name.
+     * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
     public function rename(Attachment $file, string $name): void
     {
-        $this->validateFilename($name);
+        $this->validateFileName($name);
 
         $disk = $this->getFilesystem();
         $path = "{$file->path}/{$name}";
@@ -143,6 +129,20 @@ class AttachmentManager
         $file->update(['name' => $name]);
 
         $file->save();
+    }
+
+    /**
+     * Validate filename and throw exception if validation fails.
+     *
+     * @throws DisallowedCharacterException if file name contains disallowed characters.
+     */
+    protected function validateFileName(string $name): void
+    {
+        $characters = Config::get('attachments.allowed_characters');
+
+        if (preg_match($characters, $name)) {
+            throw new DisallowedCharacterException();
+        }
     }
 
     /**
@@ -170,9 +170,12 @@ class AttachmentManager
      * Rename directory on disk and update children on disk and database.
      *
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
+     * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
     public function renameDirectory(string $oldPath, string $newPath): void
     {
+        $this->validatePath($newPath);
+
         $disk = $this->getFilesystem();
 
         if ($disk->exists($newPath)) {
@@ -189,12 +192,31 @@ class AttachmentManager
     }
 
     /**
+     * Validate complete path and throw exception if validation fails.
+     *
+     * @throws DisallowedCharacterException if path contains disallowed characters.
+     */
+    protected function validatePath(string $path): void
+    {
+        $characters = Config::get('attachments.allowed_characters');
+
+        foreach (explode('/', $path) as $directory) {
+            if (preg_match($characters, $directory)) {
+                throw new DisallowedCharacterException();
+            }
+        }
+    }
+
+    /**
      * Create a directory under a specified path.
      *
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
+     * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
     public function createDirectory(string $path): void
     {
+        $this->validatePath($path);
+
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {

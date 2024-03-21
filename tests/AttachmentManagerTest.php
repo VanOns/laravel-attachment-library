@@ -370,6 +370,7 @@ class AttachmentManagerTest extends TestCase
             ['.env', false],
             ['.jpg', false],
             ['test', false],
+            ['诶.jpg', false],
             ['t est.jpg', false],
             ['t est.jpg', false], // Non-breaking space
 
@@ -377,10 +378,52 @@ class AttachmentManagerTest extends TestCase
             ['t!est.jpg', true],
             ['t/est.jpg', true],
             ['t/est.jpg', true],
+            ["te\ts/t.jpg", true],
             ["te\ns/t.jpg", true],
-            ['🤠.jpg', true],
+            ['🐄.jpg', true],
             ["'test'.jpg", true],
             ['.jpg', true], // null
+
+        ];
+    }
+
+    /**
+     * @dataProvider pathProvider
+     */
+    public function testAssertPathWithDisallowedCharacters($name, $expectsException)
+    {
+        if ($expectsException) {
+            self::expectException(DisallowedCharacterException::class);
+        }
+
+        self::$attachmentManager->createDirectory($name);
+        self::assertTrue(self::$attachmentManager->destinationExists($name));
+    }
+
+    public static function pathProvider(): array
+    {
+        return [
+
+            // Valid paths
+            ['test/test', false],
+            ['t-est', false],
+            ['t_est', false],
+            ['tést', false],
+            ['诶', false],
+            ['test/.test', false],
+            ['.test/test', false],
+            ['test', false],
+            ['test/t est', false],
+            ['test/t est/test', false], // Non-breaking space
+
+            // Invalid paths
+            ['test/t!est', true],
+            ["te\tst/test", true],
+            ["te\nst/test", true],
+            ["te\ns!t/test", true],
+            ['test/🐄', true],
+            ["'test'/test", true],
+            ['test/', true], // null
 
         ];
     }

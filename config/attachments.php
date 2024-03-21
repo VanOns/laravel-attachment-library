@@ -14,7 +14,7 @@ return [
     'model' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
 
     /**
-     * Regular expression for defining allowed characters for file names.
+     * Regular expression for defining allowed characters for file and directory names.
      */
     'allowed_characters' => '/[^\\pL\\pN_\.\- ]+/u',
 ];
