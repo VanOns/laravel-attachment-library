@@ -9,9 +9,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -396,7 +398,7 @@ class AttachmentManagerTest extends TestCase
             self::expectException(DisallowedCharacterException::class);
         }
 
-        self::$attachmentManager->createDirectory($name);
+        self::$attachmentManager->createDirectory($name, DirectoryStrategies::CREATE_PARENT_DIRECTORIES);
         self::assertTrue(self::$attachmentManager->destinationExists($name));
     }
 
@@ -426,6 +428,14 @@ class AttachmentManagerTest extends TestCase
             ['test/', true], // null
 
         ];
+    }
+
+    public function testAssertNoParentDirectory()
+    {
+        self::expectException(NoParentDirectoryException::class);
+
+        $path = "{$this->faker->firstName}/{$this->faker->firstName}";
+        self::$attachmentManager->createDirectory($path);
     }
 
     protected function setUp(): void

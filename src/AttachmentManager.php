@@ -7,9 +7,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -21,6 +23,8 @@ class AttachmentManager
 
     protected string $model;
 
+    protected string $allowedCharacters;
+
     /**
      * @throws IncompatibleModelConfigurationException
      */
@@ -28,6 +32,7 @@ class AttachmentManager
     {
         $this->disk = Config::get('attachments.disk', 'public');
         $this->model = Config::get('attachments.model', Attachment::class);
+        $this->allowedCharacters = Config::get('attachments.allowed_characters');
 
         $this->ensureCompatibleModel();
     }
@@ -39,9 +44,7 @@ class AttachmentManager
      */
     protected function ensureCompatibleModel(): void
     {
-        $instanceOfAttachment = (new $this->model) instanceof Attachment;
-
-        if (! $instanceOfAttachment) {
+        if (! (new $this->model) instanceof Attachment) {
             throw new IncompatibleModelConfigurationException();
         }
     }
@@ -87,9 +90,12 @@ class AttachmentManager
      * @param  ?string  $desiredPath  Use NULL for root of disk.
      *
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
+     * @throws DisallowedCharacterException if file name contains disallowed characters.
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
+        $this->validateBasename($file->getClientOriginalName());
+
         $path = "{$desiredPath}/{$file->getClientOriginalName()}";
         $disk = $this->getFilesystem();
 
@@ -108,14 +114,26 @@ class AttachmentManager
     }
 
     /**
+     * Validate filename and throw exception if validation fails.
+     *
+     * @throws DisallowedCharacterException if file name contains disallowed characters.
+     */
+    protected function validateBasename(string $name): void
+    {
+        if (preg_match($this->allowedCharacters, $name)) {
+            throw new DisallowedCharacterException();
+        }
+    }
+
+    /**
      * Rename file on disk and database.
      *
      * @throws DestinationAlreadyExistsException if file in same path exists with conflicting name.
-     * @throws DisallowedCharacterException if directory contains disallowed characters.
+     * @throws DisallowedCharacterException if file name contains disallowed characters.
      */
     public function rename(Attachment $file, string $name): void
     {
-        $this->validateFileName($name);
+        $this->validateBasename($name);
 
         $disk = $this->getFilesystem();
         $path = "{$file->path}/{$name}";
@@ -129,20 +147,6 @@ class AttachmentManager
         $file->update(['name' => $name]);
 
         $file->save();
-    }
-
-    /**
-     * Validate filename and throw exception if validation fails.
-     *
-     * @throws DisallowedCharacterException if file name contains disallowed characters.
-     */
-    protected function validateFileName(string $name): void
-    {
-        $characters = Config::get('attachments.allowed_characters');
-
-        if (preg_match($characters, $name)) {
-            throw new DisallowedCharacterException();
-        }
     }
 
     /**
@@ -172,23 +176,53 @@ class AttachmentManager
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
-    public function renameDirectory(string $oldPath, string $newPath): void
+    public function renameDirectory(string $oldPath, string $name): void
     {
-        $this->validatePath($newPath);
+        $this->validateBasename($name);
+
+        // Replace old directory name with new directory name.
+        $path = explode('/', $oldPath);
+        $path[array_key_last($path)] = $name;
+        $path = implode('/', $path);
 
         $disk = $this->getFilesystem();
-
-        if ($disk->exists($newPath)) {
+        if ($disk->exists($path)) {
             throw new DestinationAlreadyExistsException();
         }
 
-        $disk->move($oldPath, $newPath);
+        $disk->move($oldPath, $path);
 
-        $filesInDirectory = $this->model::whereDisk($this->disk)->whereInPath($oldPath)->get();
-
-        foreach ($filesInDirectory as $file) {
-            $file->update(['path' => str_replace($oldPath, $newPath, $file->path)]);
+        $attachments = $this->model::whereDisk($this->disk)->whereInPath($oldPath)->get();
+        foreach ($attachments as $attachment) {
+            $attachment->update(['path' => str_replace($oldPath, $path, $attachment->path)]);
         }
+    }
+
+    /**
+     * Create a directory under a specified path.
+     *
+     * @throws DestinationAlreadyExistsException if conflicting directory name exists.
+     * @throws DisallowedCharacterException if directory contains disallowed characters.
+     * @throws NoParentDirectoryException if there isn't an existing parent directory
+     *                                    when not using the DirectoryStrategies::CREATE_PARENT_DIRECTORIES flag.
+     */
+    public function createDirectory(string $path, DirectoryStrategies ...$flags): void
+    {
+        $this->validatePath($path);
+
+        $disk = $this->getFilesystem();
+        if ($disk->exists($path)) {
+            throw new DestinationAlreadyExistsException();
+        }
+
+        $createParentDirectoriesFlag = in_array(DirectoryStrategies::CREATE_PARENT_DIRECTORIES, $flags);
+        $hasParentDirectory = $disk->exists(dirname($path));
+
+        if (! $createParentDirectoriesFlag && ! $hasParentDirectory) {
+            throw new NoParentDirectoryException();
+        }
+
+        $disk->makeDirectory($path);
     }
 
     /**
@@ -198,32 +232,9 @@ class AttachmentManager
      */
     protected function validatePath(string $path): void
     {
-        $characters = Config::get('attachments.allowed_characters');
-
         foreach (explode('/', $path) as $directory) {
-            if (preg_match($characters, $directory)) {
-                throw new DisallowedCharacterException();
-            }
+            $this->validateBasename($directory);
         }
-    }
-
-    /**
-     * Create a directory under a specified path.
-     *
-     * @throws DestinationAlreadyExistsException if conflicting directory name exists.
-     * @throws DisallowedCharacterException if directory contains disallowed characters.
-     */
-    public function createDirectory(string $path): void
-    {
-        $this->validatePath($path);
-
-        $disk = $this->getFilesystem();
-
-        if ($disk->exists($path)) {
-            throw new DestinationAlreadyExistsException();
-        }
-
-        $disk->makeDirectory($path);
     }
 
     /**
