@@ -32,19 +32,19 @@ class AttachmentManager
     {
         $this->disk = Config::get('attachments.disk', 'public');
         $this->model = Config::get('attachments.model', Attachment::class);
-        $this->allowedCharacters = Config::get('attachments.allowed_characters');
+        $this->allowedCharacters = Config::get('attachments.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         $this->ensureCompatibleModel();
     }
 
     /**
-     * Throw exception if configured model is not a instance of the Attachment model.
+     * Throw exception if configured model is not an instance of the Attachment model.
      *
      * @throws IncompatibleModelConfigurationException
      */
     protected function ensureCompatibleModel(): void
     {
-        if (! (new $this->model) instanceof Attachment) {
+        if (! is_a($this->model, Attachment::class, true)) {
             throw new IncompatibleModelConfigurationException();
         }
     }
@@ -62,7 +62,7 @@ class AttachmentManager
     /**
      * Return all directories under a given path.
      *
-     * @param  ?string  $path  Use NULL for root of disk.
+     * @param  string|null  $path  Use `null` for root of disk.
      */
     public function directories(?string $path = null): Collection
     {
@@ -77,7 +77,7 @@ class AttachmentManager
     /**
      * Return files under a given path.
      *
-     * @param  ?string  $path  Use NULL for root of disk.
+     * @param  string|null  $path  Use `null` for root of disk.
      */
     public function files(?string $path): Collection
     {
@@ -85,9 +85,9 @@ class AttachmentManager
     }
 
     /**
-     * Uploads a file to the selected disk under the desired path and creates a database entry.
+     * Upload a file to the selected disk under the desired path and create a database entry.
      *
-     * @param  ?string  $desiredPath  Use NULL for root of disk.
+     * @param  string|null  $desiredPath  Use `null` for root of disk.
      *
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
      * @throws DisallowedCharacterException if file name contains disallowed characters.
@@ -120,7 +120,7 @@ class AttachmentManager
      */
     protected function validateBasename(string $name): void
     {
-        if (preg_match($this->allowedCharacters, $name)) {
+        if (preg_match_all($this->allowedCharacters, $name)) {
             throw new DisallowedCharacterException();
         }
     }
@@ -142,7 +142,7 @@ class AttachmentManager
             throw new DestinationAlreadyExistsException();
         }
 
-        $disk->move($file->fullPath, $path);
+        $disk->move($file->full_path, $path);
 
         $file->update(['name' => $name]);
 
@@ -163,7 +163,7 @@ class AttachmentManager
             throw new DestinationAlreadyExistsException();
         }
 
-        $disk->move($file->fullPath, $path);
+        $disk->move($file->full_path, $path);
 
         $file->update(['path' => $desiredPath]);
 
@@ -176,25 +176,25 @@ class AttachmentManager
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
-    public function renameDirectory(string $oldPath, string $name): void
+    public function renameDirectory(string $currentPath, string $newName): void
     {
-        $this->validateBasename($name);
+        $this->validateBasename($newName);
 
         // Replace old directory name with new directory name.
-        $path = explode('/', $oldPath);
-        $path[array_key_last($path)] = $name;
-        $path = implode('/', $path);
+        $newPath = explode('/', $currentPath);
+        $newPath[array_key_last($newPath)] = $newName;
+        $newPath = implode('/', $newPath);
 
         $disk = $this->getFilesystem();
-        if ($disk->exists($path)) {
+        if ($disk->exists($newPath)) {
             throw new DestinationAlreadyExistsException();
         }
 
-        $disk->move($oldPath, $path);
+        $disk->move($currentPath, $newPath);
 
-        $attachments = $this->model::whereDisk($this->disk)->whereInPath($oldPath)->get();
+        $attachments = $this->model::whereDisk($this->disk)->whereInPath($currentPath)->get();
         foreach ($attachments as $attachment) {
-            $attachment->update(['path' => str_replace($oldPath, $path, $attachment->path)]);
+            $attachment->update(['path' => str_replace($currentPath, $newPath, $attachment->path)]);
         }
     }
 
@@ -248,17 +248,17 @@ class AttachmentManager
     }
 
     /**
-     * Removes a file from disk and database.
+     * Remove a file from disk and database.
      */
     public function delete(Attachment $file): void
     {
-        $this->getFilesystem()->delete($file->fullPath);
+        $this->getFilesystem()->delete($file->full_path);
 
         $file->delete();
     }
 
     /**
-     * Checks if a path exists on the disk.
+     * Check if the given path exists on the disk.
      *
      * Examples:
      * - A path like: 'foo/bar'
@@ -274,6 +274,6 @@ class AttachmentManager
      */
     public function getUrl(Attachment $file): string|bool
     {
-        return Storage::disk($file->disk)->url($file->fullPath);
+        return Storage::disk($file->disk)->url($file->full_path);
     }
 }

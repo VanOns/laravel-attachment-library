@@ -6,7 +6,7 @@ return [
      *
      * @see filesystems.php
      */
-    'disk' => env('ATTACHMENTS_DISK') ?? 'public',
+    'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
      * Database representation of the physical file.

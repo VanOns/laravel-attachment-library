@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Test;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -333,11 +334,28 @@ class AttachmentManagerTest extends TestCase
         self::assertEmpty(self::$attachmentManager->files(null));
     }
 
-    public function testAssertEnsureCompatibleModel()
+    public function testAssertIncompatibleModel()
     {
         self::expectException(IncompatibleModelConfigurationException::class);
 
-        Config::set('attachments.model', IncompatibleModel::class);
+        $mock = new class extends Model
+        {
+        };
+
+        Config::set('attachments.model', $mock::class);
+
+        new AttachmentManager();
+    }
+
+    public function testAssertEnsureCompatibleModel()
+    {
+        self::expectNotToPerformAssertions();
+
+        $mock = new class extends Attachment
+        {
+        };
+
+        Config::set('attachments.model', $mock::class);
 
         new AttachmentManager();
     }
@@ -364,7 +382,7 @@ class AttachmentManagerTest extends TestCase
     {
         return [
 
-            // Valid file names
+            // Valid file names.
             ['test.jpg', false],
             ['t-est.jpg', false],
             ['t_est.jpg', false],
@@ -374,9 +392,9 @@ class AttachmentManagerTest extends TestCase
             ['test', false],
             ['诶.jpg', false],
             ['t est.jpg', false],
-            ['t est.jpg', false], // Non-breaking space
+            ['t est.jpg', false], // Non-breaking space.
 
-            // Invalid file names
+            // Invalid file names.
             ['t!est.jpg', true],
             ['t/est.jpg', true],
             ['t/est.jpg', true],
@@ -384,7 +402,7 @@ class AttachmentManagerTest extends TestCase
             ["te\ns/t.jpg", true],
             ['🐄.jpg', true],
             ["'test'.jpg", true],
-            ['.jpg', true], // null
+            ['.jpg', true], // null.
 
         ];
     }
@@ -406,7 +424,7 @@ class AttachmentManagerTest extends TestCase
     {
         return [
 
-            // Valid paths
+            // Valid paths.
             ['test/test', false],
             ['t-est', false],
             ['t_est', false],
@@ -416,16 +434,17 @@ class AttachmentManagerTest extends TestCase
             ['.test/test', false],
             ['test', false],
             ['test/t est', false],
-            ['test/t est/test', false], // Non-breaking space
+            ['test/t est/test', false], // Non-breaking space.
 
-            // Invalid paths
+            // Invalid paths.
             ['test/t!est', true],
+            ['test/t!est/t!est', true],
             ["te\tst/test", true],
             ["te\nst/test", true],
             ["te\ns!t/test", true],
             ['test/🐄', true],
             ["'test'/test", true],
-            ['test/', true], // null
+            ['test/', true], // null.
 
         ];
     }
@@ -445,8 +464,6 @@ class AttachmentManagerTest extends TestCase
         Storage::fake(self::$disk);
 
         Config::set('attachments.disk', self::$disk);
-        Config::set('attachments.model', Attachment::class);
-        Config::set('attachments.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         self::$attachmentManager = new AttachmentManager();
     }

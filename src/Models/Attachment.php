@@ -17,7 +17,7 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $mime_type
  * @property string $disk
  * @property string $path
- * @property string $fullPath
+ * @property string $full_path
  *
  * @mixin AttachmentQueryBuilder
  */
