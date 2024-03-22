@@ -1,5 +1,13 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,phpstorm+all,visualstudiocode
+# Created by https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode,composer,phpunit
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,phpstorm+all,visualstudiocode,composer,phpunit
+
+### Composer ###
+composer.phar
+/vendor/
+
+# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
+# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
+# composer.lock
 
 ### macOS ###
 # General
@@ -122,6 +130,21 @@ fabric.properties
 !.idea/codeStyles
 !.idea/runConfigurations
 
+### PHPUnit ###
+# Covers PHPUnit
+# Reference: https://phpunit.de/
+
+# Generated files
+.phpunit.result.cache
+.phpunit.cache
+
+# PHPUnit
+/app/phpunit.xml
+/phpunit.xml
+
+# Build data
+/build/
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -141,4 +164,4 @@ fabric.properties
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode
+# End of https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode,composer,phpunit
