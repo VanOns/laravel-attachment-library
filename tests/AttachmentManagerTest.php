@@ -126,17 +126,17 @@ class AttachmentManagerTest extends TestCase
         $directoryNameA = $this->faker->firstName();
         $directoryNameB = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryNameA);
+        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
 
         $this->assertEquals(
-            new Collection([$directoryNameA]),
+            new Collection([$directoryA]),
             self::$attachmentManager->directories()
         );
 
-        self::$attachmentManager->createDirectory($directoryNameB);
+        $directoryB = self::$attachmentManager->createDirectory($directoryNameB);
 
         $this->assertEqualsCanonicalizing(
-            new Collection([$directoryNameA, $directoryNameB]),
+            new Collection([$directoryA, $directoryB]),
             self::$attachmentManager->directories()
         );
     }
@@ -145,10 +145,10 @@ class AttachmentManagerTest extends TestCase
     {
         $directoryName = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryName);
+        $directory = self::$attachmentManager->createDirectory($directoryName);
 
         $this->assertEquals(
-            new Collection([$directoryName]),
+            new Collection([$directory]),
             self::$attachmentManager->directories()
         );
     }
@@ -188,13 +188,13 @@ class AttachmentManagerTest extends TestCase
         $directoryNameA = $this->faker->firstName();
         $directoryNameB = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryNameA);
+        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
 
-        $this->assertEquals(new Collection([$directoryNameA]), self::$attachmentManager->directories());
+        $this->assertEquals(new Collection([$directoryA]), self::$attachmentManager->directories());
 
-        self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
+        $directoryB = self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
 
-        $this->assertEquals(new Collection([$directoryNameB]), self::$attachmentManager->directories());
+        $this->assertEquals(new Collection([$directoryB]), self::$attachmentManager->directories());
     }
 
     public function testAssertRenameDirectoryWithFiles()
@@ -342,7 +342,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.model', $mock::class);
+        Config::set('attachments.attachment_class', $mock::class);
 
         new AttachmentManager();
     }
@@ -355,7 +355,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.model', $mock::class);
+        Config::set('attachments.attachment_class', $mock::class);
 
         new AttachmentManager();
     }

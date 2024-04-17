@@ -11,10 +11,12 @@ return [
     /**
      * Database representation of the physical file.
      */
-    'model' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
+    'attachment_class' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
 
     /**
      * Regular expression for defining allowed characters for file and directory names.
      */
     'allowed_characters' => '/[^\\pL\\pN_\.\- ]+/u',
+
+    'directory_class' => \VanOns\LaravelAttachmentLibrary\Directory::class,
 ];
