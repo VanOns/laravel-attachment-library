@@ -121,6 +121,7 @@ class AttachmentManager
             'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
+            'size' => $file->getSize(),
         ]);
     }
 

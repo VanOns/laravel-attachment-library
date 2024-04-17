@@ -16,6 +16,7 @@ class AttachmentFactory extends Factory
             'disk' => 'test',
             'mime_type' => fake()->mimeType(),
             'path' => null,
+            'size' => fake()->randomNumber(),
         ];
     }
 }
