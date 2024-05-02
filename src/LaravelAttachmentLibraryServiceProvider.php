@@ -2,21 +2,31 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
-use Illuminate\Support\ServiceProvider;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class LaravelAttachmentLibraryServiceProvider extends ServiceProvider
+class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
-    public function boot(): void
+    public function configurePackage(Package $package): void
     {
-        $this->publishes([
-            __DIR__.'/../config/attachments.php' => config_path('attachments.php'),
-        ]);
-
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $package->name('laravel-attachment-library')
+            ->hasConfigFile()
+            ->hasMigrations(['create_attachment_table', 'create_attachables_table'])
+            ->runsMigrations()
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command->publishConfigFile()
+                    ->publishMigrations()
+                    ->copyAndRegisterServiceProviderInApp()
+                    ->askToRunMigrations();
+            });
     }
 
-    public function register(): void
+    public function packageBooted(): void
     {
-        $this->app->bind('attachment.manager', AttachmentManager::class);
+        app()->bind(
+            'attachment.manager',
+            config('attachments.class_mapping.attachment_manager', AttachmentManager::class)
+        );
     }
 }

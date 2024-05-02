@@ -2,7 +2,6 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Models;
 
-use Database\Factories\AttachmentFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Query\Builder;
 use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
+use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
@@ -18,6 +18,7 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $disk
  * @property string $path
  * @property string $full_path
+ * @property int $size
  *
  * @mixin AttachmentQueryBuilder
  */

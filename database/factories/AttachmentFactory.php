@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace VanOns\LaravelAttachmentLibrary\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;

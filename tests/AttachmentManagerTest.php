@@ -25,6 +25,64 @@ class AttachmentManagerTest extends TestCase
 
     protected static ?AttachmentManager $attachmentManager;
 
+    public static function fileNameProvider(): array
+    {
+        return [
+
+            // Valid file names.
+            ['test.jpg', false],
+            ['t-est.jpg', false],
+            ['t_est.jpg', false],
+            ['tést.jpg', false],
+            ['.env', false],
+            ['.jpg', false],
+            ['test', false],
+            ['诶.jpg', false],
+            ['t est.jpg', false],
+            ['t est.jpg', false], // Non-breaking space.
+
+            // Invalid file names.
+            ['t!est.jpg', true],
+            ['t/est.jpg', true],
+            ['t/est.jpg', true],
+            ["te\ts/t.jpg", true],
+            ["te\ns/t.jpg", true],
+            ['🐄.jpg', true],
+            ["'test'.jpg", true],
+            ['.jpg', true], // null.
+
+        ];
+    }
+
+    public static function pathProvider(): array
+    {
+        return [
+
+            // Valid paths.
+            ['test/test', false],
+            ['t-est', false],
+            ['t_est', false],
+            ['tést', false],
+            ['诶', false],
+            ['test/.test', false],
+            ['.test/test', false],
+            ['test', false],
+            ['test/t est', false],
+            ['test/t est/test', false], // Non-breaking space.
+
+            // Invalid paths.
+            ['test/t!est', true],
+            ['test/t!est/t!est', true],
+            ["te\tst/test", true],
+            ["te\nst/test", true],
+            ["te\ns!t/test", true],
+            ['test/🐄', true],
+            ["'test'/test", true],
+            ['test/', true], // null.
+
+        ];
+    }
+
     public function testAssertFilesEmpty()
     {
         $this->assertEmpty(self::$attachmentManager->files(null));
@@ -342,7 +400,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.attachment_class', $mock::class);
+        Config::set('attachments.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -378,35 +436,6 @@ class AttachmentManagerTest extends TestCase
         self::assertEquals($attachment->name, $name);
     }
 
-    public static function fileNameProvider(): array
-    {
-        return [
-
-            // Valid file names.
-            ['test.jpg', false],
-            ['t-est.jpg', false],
-            ['t_est.jpg', false],
-            ['tést.jpg', false],
-            ['.env', false],
-            ['.jpg', false],
-            ['test', false],
-            ['诶.jpg', false],
-            ['t est.jpg', false],
-            ['t est.jpg', false], // Non-breaking space.
-
-            // Invalid file names.
-            ['t!est.jpg', true],
-            ['t/est.jpg', true],
-            ['t/est.jpg', true],
-            ["te\ts/t.jpg", true],
-            ["te\ns/t.jpg", true],
-            ['🐄.jpg', true],
-            ["'test'.jpg", true],
-            ['.jpg', true], // null.
-
-        ];
-    }
-
     /**
      * @dataProvider pathProvider
      */
@@ -418,35 +447,6 @@ class AttachmentManagerTest extends TestCase
 
         self::$attachmentManager->createDirectory($name, DirectoryStrategies::CREATE_PARENT_DIRECTORIES);
         self::assertTrue(self::$attachmentManager->destinationExists($name));
-    }
-
-    public static function pathProvider(): array
-    {
-        return [
-
-            // Valid paths.
-            ['test/test', false],
-            ['t-est', false],
-            ['t_est', false],
-            ['tést', false],
-            ['诶', false],
-            ['test/.test', false],
-            ['.test/test', false],
-            ['test', false],
-            ['test/t est', false],
-            ['test/t est/test', false], // Non-breaking space.
-
-            // Invalid paths.
-            ['test/t!est', true],
-            ['test/t!est/t!est', true],
-            ["te\tst/test", true],
-            ["te\nst/test", true],
-            ["te\ns!t/test", true],
-            ['test/🐄', true],
-            ["'test'/test", true],
-            ['test/', true], // null.
-
-        ];
     }
 
     public function testAssertNoParentDirectory()
@@ -473,5 +473,15 @@ class AttachmentManagerTest extends TestCase
         parent::tearDown();
 
         Storage::fake(self::$disk);
+    }
+
+    /**
+     * Publish package migrations before migrating.
+     */
+    protected function beforeRefreshingDatabase()
+    {
+        self::artisan(
+            'vendor:publish --provider="VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider"'
+        );
     }
 }

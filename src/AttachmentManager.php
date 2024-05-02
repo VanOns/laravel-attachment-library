@@ -33,8 +33,8 @@ class AttachmentManager
     public function __construct()
     {
         $this->disk = Config::get('attachments.disk', 'public');
-        $this->attachmentClass = Config::get('attachments.attachment_class', Attachment::class);
-        $this->directoryClass = Config::get('attachments.directory_class', Directory::class);
+        $this->attachmentClass = Config::get('attachments.class_mapping.attachment', Attachment::class);
+        $this->directoryClass = Config::get('attachments.class_mapping.directory', Directory::class);
         $this->allowedCharacters = Config::get('attachments.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         $this->ensureCompatibleClasses();

@@ -35,7 +35,7 @@
   "autoload": {
     "psr-4": {
       "VanOns\\LaravelAttachmentLibrary\\": "src",
-      "Database\\Factories\\": "database/factories/"
+      "VanOns\\LaravelAttachmentLibrary\\Database\\Factories\\": "database/factories/"
     }
   },
   "autoload-dev": {
@@ -52,5 +52,8 @@
   },
   "config" : {
     "sort-packages": true
+  },
+  "require": {
+    "spatie/laravel-package-tools": "^1.16"
   }
 }

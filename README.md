@@ -12,7 +12,10 @@ A Laravel library for attaching files to Eloquent models.
 
 ```bash
 # Composer
-composer require van-ons/laravel-attachment-library
+$ composer require van-ons/laravel-attachment-library
+
+# Install package
+$ php artisan attachment-library:install 
 ```
 
 ### Usage
