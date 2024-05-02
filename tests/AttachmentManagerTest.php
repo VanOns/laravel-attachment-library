@@ -13,8 +13,9 @@ use VanOns\LaravelAttachmentLibrary\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
+use VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -394,7 +395,7 @@ class AttachmentManagerTest extends TestCase
 
     public function testAssertIncompatibleModel()
     {
-        self::expectException(IncompatibleModelConfigurationException::class);
+        self::expectException(IncompatibleClassMappingException::class);
 
         $mock = new class extends Model
         {
@@ -413,7 +414,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.attachment_class', $mock::class);
+        Config::set('attachments.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -480,8 +481,10 @@ class AttachmentManagerTest extends TestCase
      */
     protected function beforeRefreshingDatabase()
     {
+        $serviceProviderClass = LaravelAttachmentLibraryServiceProvider::class;
+
         self::artisan(
-            'vendor:publish --provider="VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider"'
+            "vendor:publish --provider='{$serviceProviderClass}'"
         );
     }
 }

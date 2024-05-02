@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
@@ -28,7 +28,7 @@ class AttachmentManager
     protected string $allowedCharacters;
 
     /**
-     * @throws IncompatibleModelConfigurationException
+     * @throws IncompatibleClassMappingException
      */
     public function __construct()
     {
@@ -43,15 +43,15 @@ class AttachmentManager
     /**
      * Throw exception if configured model is not an instance of the Attachment model.
      *
-     * @throws IncompatibleModelConfigurationException
+     * @throws IncompatibleClassMappingException
      */
     protected function ensureCompatibleClasses(): void
     {
         if (! is_a($this->attachmentClass, Attachment::class, true)) {
-            throw new IncompatibleModelConfigurationException();
+            throw new IncompatibleClassMappingException($this->attachmentClass, Attachment::class);
         }
         if (! is_a($this->directoryClass, Directory::class, true)) {
-            throw new IncompatibleModelConfigurationException();
+            throw new IncompatibleClassMappingException($this->directoryClass, Directory::class);
         }
     }
 
