@@ -401,7 +401,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.class_mapping.attachment', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -414,7 +414,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.class_mapping.attachment', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -464,7 +464,7 @@ class AttachmentManagerTest extends TestCase
 
         Storage::fake(self::$disk);
 
-        Config::set('attachments.disk', self::$disk);
+        Config::set('attachment-library.disk', self::$disk);
 
         self::$attachmentManager = new AttachmentManager();
     }

@@ -24,7 +24,7 @@ class LaravelAttachmentLibraryServiceProviderTest extends TestCase
         {
         };
 
-        Config::set('attachments.class_mapping.attachment_manager', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
 
         $serviceProvider = new LaravelAttachmentLibraryServiceProvider(self::$applicationMock);
         $serviceProvider->packageBooted();
@@ -38,7 +38,7 @@ class LaravelAttachmentLibraryServiceProviderTest extends TestCase
         {
         };
 
-        Config::set('attachments.class_mapping.attachment_manager', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
 
         $serviceProvider = new LaravelAttachmentLibraryServiceProvider(self::$applicationMock);
         $serviceProvider->packageBooted();

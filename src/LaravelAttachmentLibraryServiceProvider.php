@@ -28,7 +28,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
      */
     public function packageBooted(): void
     {
-        $attachmentManagerClass = config('attachments.class_mapping.attachment_manager', AttachmentManager::class);
+        $attachmentManagerClass = config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class);
 
         if (! is_a($attachmentManagerClass, AttachmentManager::class, true)) {
             throw new IncompatibleClassMappingException($attachmentManagerClass, AttachmentManager::class);
@@ -36,7 +36,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 
         app()->bind(
             'attachment.manager',
-            config('attachments.class_mapping.attachment_manager', AttachmentManager::class)
+            config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class)
         );
     }
 }
