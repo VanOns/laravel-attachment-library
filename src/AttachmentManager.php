@@ -305,16 +305,16 @@ class AttachmentManager
     }
 
     /**
-     * Check if attachment is of given type
+     * Check if attachment is of given type.
      */
     public function isType(Attachment $file, string $type): bool
     {
-        // Check if attachment extension matches the given type
+        // Check if attachment extension matches the given type.
         if(!in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])){
             return false;
         }
 
-        // Check if attachment mime_type matches the extension
+        // Check if attachment mime_type matches the extension.
         return in_array($file->mime_type, MimeTypes::getDefault()->getMimeTypes($file->extension));
     }
 }
