@@ -13,12 +13,13 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     {
         $package->name('laravel-attachment-library')
             ->hasConfigFile()
-            ->hasMigrations(['create_attachment_table', 'create_attachables_table'])
+            ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
                     ->copyAndRegisterServiceProviderInApp()
+                    ->setHidden(false)
                     ->askToRunMigrations();
             });
     }

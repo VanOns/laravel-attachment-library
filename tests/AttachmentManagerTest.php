@@ -15,7 +15,6 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
-use VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
@@ -476,15 +475,15 @@ class AttachmentManagerTest extends TestCase
         Storage::fake(self::$disk);
     }
 
-    /**
-     * Publish package migrations before migrating.
-     */
-    protected function beforeRefreshingDatabase()
+    protected function afterRefreshingDatabase(): void
     {
-        $serviceProviderClass = LaravelAttachmentLibraryServiceProvider::class;
+        $migrations = [
+            require(__DIR__ . '/../database/migrations/create_attachments_table.php.stub'),
+            require(__DIR__ . '/../database/migrations/create_attachables_table.php.stub')
+        ];
 
-        self::artisan(
-            "vendor:publish --provider='{$serviceProviderClass}'"
-        );
+        foreach($migrations as $migration) {
+            $migration->up();
+        }
     }
 }
