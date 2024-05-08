@@ -27,6 +27,8 @@ class AttachmentManager
 
     protected string $allowedCharacters;
 
+    protected array $attachmentTypeMapping;
+
     /**
      * @throws IncompatibleClassMappingException
      */
@@ -35,6 +37,7 @@ class AttachmentManager
         $this->disk = Config::get('attachment-library.disk', 'public');
         $this->attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
         $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
+        $this->attachmentTypeMapping = Config::get('attachment-library.attachment_type_mapping', []);
         $this->allowedCharacters = Config::get('attachment-library.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         $this->ensureCompatibleClasses();
@@ -105,9 +108,15 @@ class AttachmentManager
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
-        $this->validateBasename($file->getClientOriginalName());
+        $originalFilename = $file->getClientOriginalName();
 
-        $path = "{$desiredPath}/{$file->getClientOriginalName()}";
+        $name = pathinfo($originalFilename, PATHINFO_FILENAME);
+        $extension = $file->guessExtension() ?? pathinfo($originalFilename, PATHINFO_EXTENSION);
+        $filename = "{$name}.{$extension}";
+
+        $this->validateBasename($filename);
+
+        $path = "{$desiredPath}/{$filename}";
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {
@@ -117,7 +126,8 @@ class AttachmentManager
         $disk->put($path, $file->getContent());
 
         return $this->attachmentClass::create([
-            'name' => $file->getClientOriginalName(),
+            'name' => $name,
+            'extension' => $extension,
             'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
@@ -148,7 +158,7 @@ class AttachmentManager
         $this->validateBasename($name);
 
         $disk = $this->getFilesystem();
-        $path = "{$file->path}/{$name}";
+        $path = "{$file->path}/{$name}.{$file->extension}";
 
         if ($disk->exists($path)) {
             throw new DestinationAlreadyExistsException();
@@ -169,7 +179,7 @@ class AttachmentManager
     public function move(Attachment $file, string $desiredPath): void
     {
         $disk = $this->getFilesystem();
-        $path = "{$desiredPath}/{$file->name}";
+        $path = "{$desiredPath}/{$file->filename}";
 
         if ($disk->exists($path)) {
             throw new DestinationAlreadyExistsException();
@@ -291,5 +301,13 @@ class AttachmentManager
     public function getUrl(Attachment $file): string|bool
     {
         return Storage::disk($file->disk)->url($file->full_path);
+    }
+
+    /**
+     * Check if attachment is of given type
+     */
+    public function isType(Attachment $file, string $type): bool
+    {
+        return in_array($file->extension, $this->attachmentTypeMapping[$type] ?? []);
     }
 }

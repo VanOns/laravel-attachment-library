@@ -21,4 +21,8 @@ return [
         'directory' => \VanOns\LaravelAttachmentLibrary\Directory::class,
         'attachment_manager' => \VanOns\LaravelAttachmentLibrary\AttachmentManager::class,
     ],
+
+    'attachment_type_mapping' => [
+        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentTypes::PREVIEWABLE => ['png', 'jpg', 'svg'],
+    ],
 ];
