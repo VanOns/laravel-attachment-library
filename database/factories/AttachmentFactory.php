@@ -13,6 +13,7 @@ class AttachmentFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'extension' => fake()->fileExtension(),
             'disk' => 'test',
             'mime_type' => fake()->mimeType(),
             'path' => null,
