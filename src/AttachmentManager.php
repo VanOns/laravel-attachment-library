@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Mime\MimeTypes;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -308,6 +309,12 @@ class AttachmentManager
      */
     public function isType(Attachment $file, string $type): bool
     {
-        return in_array($file->extension, $this->attachmentTypeMapping[$type] ?? []);
+        // Check if attachment extension matches the given type
+        if(!in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])){
+            return false;
+        }
+
+        // Check if attachment mime_type matches the extension
+        return in_array($file->mime_type, MimeTypes::getDefault()->getMimeTypes($file->extension));
     }
 }
