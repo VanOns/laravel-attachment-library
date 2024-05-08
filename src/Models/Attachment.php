@@ -44,7 +44,7 @@ class Attachment extends Model
     }
 
     /**
-     * Check if given type matches attachment type
+     * Check if given type matches attachment type.
      */
     public function isType(string $type): bool
     {
@@ -52,7 +52,7 @@ class Attachment extends Model
     }
 
     /**
-     * Return filename including extension
+     * Return filename including extension.
      */
     public function filename(): Attribute
     {
