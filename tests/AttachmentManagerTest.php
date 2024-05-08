@@ -478,11 +478,11 @@ class AttachmentManagerTest extends TestCase
     protected function afterRefreshingDatabase(): void
     {
         $migrations = [
-            require(__DIR__ . '/../database/migrations/create_attachments_table.php.stub'),
-            require(__DIR__ . '/../database/migrations/create_attachables_table.php.stub')
+            require (__DIR__.'/../database/migrations/create_attachments_table.php.stub'),
+            require (__DIR__.'/../database/migrations/create_attachables_table.php.stub'),
         ];
 
-        foreach($migrations as $migration) {
+        foreach ($migrations as $migration) {
             $migration->up();
         }
     }
