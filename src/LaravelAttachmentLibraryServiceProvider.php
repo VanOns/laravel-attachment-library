@@ -5,6 +5,7 @@ namespace VanOns\LaravelAttachmentLibrary;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use VanOns\LaravelAttachmentLibrary\Commands\ImportAttachments;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
@@ -15,6 +16,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
+            ->hasCommand(ImportAttachments::class)
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
