@@ -13,7 +13,7 @@ use VanOns\LaravelAttachmentLibrary\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
@@ -24,6 +24,64 @@ class AttachmentManagerTest extends TestCase
     protected static string $disk = 'test';
 
     protected static ?AttachmentManager $attachmentManager;
+
+    public static function fileNameProvider(): array
+    {
+        return [
+
+            // Valid file names.
+            ['test.jpg', false],
+            ['t-est.jpg', false],
+            ['t_est.jpg', false],
+            ['tést.jpg', false],
+            ['.env', false],
+            ['.jpg', false],
+            ['test', false],
+            ['诶.jpg', false],
+            ['t est.jpg', false],
+            ['t est.jpg', false], // Non-breaking space.
+
+            // Invalid file names.
+            ['t!est.jpg', true],
+            ['t/est.jpg', true],
+            ['t/est.jpg', true],
+            ["te\ts/t.jpg", true],
+            ["te\ns/t.jpg", true],
+            ['🐄.jpg', true],
+            ["'test'.jpg", true],
+            ['.jpg', true], // null.
+
+        ];
+    }
+
+    public static function pathProvider(): array
+    {
+        return [
+
+            // Valid paths.
+            ['test/test', false],
+            ['t-est', false],
+            ['t_est', false],
+            ['tést', false],
+            ['诶', false],
+            ['test/.test', false],
+            ['.test/test', false],
+            ['test', false],
+            ['test/t est', false],
+            ['test/t est/test', false], // Non-breaking space.
+
+            // Invalid paths.
+            ['test/t!est', true],
+            ['test/t!est/t!est', true],
+            ["te\tst/test", true],
+            ["te\nst/test", true],
+            ["te\ns!t/test", true],
+            ['test/🐄', true],
+            ["'test'/test", true],
+            ['test/', true], // null.
+
+        ];
+    }
 
     public function testAssertFilesEmpty()
     {
@@ -126,17 +184,17 @@ class AttachmentManagerTest extends TestCase
         $directoryNameA = $this->faker->firstName();
         $directoryNameB = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryNameA);
+        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
 
         $this->assertEquals(
-            new Collection([$directoryNameA]),
+            new Collection([$directoryA]),
             self::$attachmentManager->directories()
         );
 
-        self::$attachmentManager->createDirectory($directoryNameB);
+        $directoryB = self::$attachmentManager->createDirectory($directoryNameB);
 
         $this->assertEqualsCanonicalizing(
-            new Collection([$directoryNameA, $directoryNameB]),
+            new Collection([$directoryA, $directoryB]),
             self::$attachmentManager->directories()
         );
     }
@@ -145,10 +203,10 @@ class AttachmentManagerTest extends TestCase
     {
         $directoryName = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryName);
+        $directory = self::$attachmentManager->createDirectory($directoryName);
 
         $this->assertEquals(
-            new Collection([$directoryName]),
+            new Collection([$directory]),
             self::$attachmentManager->directories()
         );
     }
@@ -188,13 +246,13 @@ class AttachmentManagerTest extends TestCase
         $directoryNameA = $this->faker->firstName();
         $directoryNameB = $this->faker->firstName();
 
-        self::$attachmentManager->createDirectory($directoryNameA);
+        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
 
-        $this->assertEquals(new Collection([$directoryNameA]), self::$attachmentManager->directories());
+        $this->assertEquals(new Collection([$directoryA]), self::$attachmentManager->directories());
 
-        self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
+        $directoryB = self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
 
-        $this->assertEquals(new Collection([$directoryNameB]), self::$attachmentManager->directories());
+        $this->assertEquals(new Collection([$directoryB]), self::$attachmentManager->directories());
     }
 
     public function testAssertRenameDirectoryWithFiles()
@@ -336,13 +394,13 @@ class AttachmentManagerTest extends TestCase
 
     public function testAssertIncompatibleModel()
     {
-        self::expectException(IncompatibleModelConfigurationException::class);
+        self::expectException(IncompatibleClassMappingException::class);
 
         $mock = new class extends Model
         {
         };
 
-        Config::set('attachments.model', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -355,7 +413,7 @@ class AttachmentManagerTest extends TestCase
         {
         };
 
-        Config::set('attachments.model', $mock::class);
+        Config::set('attachment-library.class_mapping.attachment', $mock::class);
 
         new AttachmentManager();
     }
@@ -378,35 +436,6 @@ class AttachmentManagerTest extends TestCase
         self::assertEquals($attachment->name, $name);
     }
 
-    public static function fileNameProvider(): array
-    {
-        return [
-
-            // Valid file names.
-            ['test.jpg', false],
-            ['t-est.jpg', false],
-            ['t_est.jpg', false],
-            ['tést.jpg', false],
-            ['.env', false],
-            ['.jpg', false],
-            ['test', false],
-            ['诶.jpg', false],
-            ['t est.jpg', false],
-            ['t est.jpg', false], // Non-breaking space.
-
-            // Invalid file names.
-            ['t!est.jpg', true],
-            ['t/est.jpg', true],
-            ['t/est.jpg', true],
-            ["te\ts/t.jpg", true],
-            ["te\ns/t.jpg", true],
-            ['🐄.jpg', true],
-            ["'test'.jpg", true],
-            ['.jpg', true], // null.
-
-        ];
-    }
-
     /**
      * @dataProvider pathProvider
      */
@@ -418,35 +447,6 @@ class AttachmentManagerTest extends TestCase
 
         self::$attachmentManager->createDirectory($name, DirectoryStrategies::CREATE_PARENT_DIRECTORIES);
         self::assertTrue(self::$attachmentManager->destinationExists($name));
-    }
-
-    public static function pathProvider(): array
-    {
-        return [
-
-            // Valid paths.
-            ['test/test', false],
-            ['t-est', false],
-            ['t_est', false],
-            ['tést', false],
-            ['诶', false],
-            ['test/.test', false],
-            ['.test/test', false],
-            ['test', false],
-            ['test/t est', false],
-            ['test/t est/test', false], // Non-breaking space.
-
-            // Invalid paths.
-            ['test/t!est', true],
-            ['test/t!est/t!est', true],
-            ["te\tst/test", true],
-            ["te\nst/test", true],
-            ["te\ns!t/test", true],
-            ['test/🐄', true],
-            ["'test'/test", true],
-            ['test/', true], // null.
-
-        ];
     }
 
     public function testAssertNoParentDirectory()
@@ -463,7 +463,7 @@ class AttachmentManagerTest extends TestCase
 
         Storage::fake(self::$disk);
 
-        Config::set('attachments.disk', self::$disk);
+        Config::set('attachment-library.disk', self::$disk);
 
         self::$attachmentManager = new AttachmentManager();
     }
@@ -473,5 +473,17 @@ class AttachmentManagerTest extends TestCase
         parent::tearDown();
 
         Storage::fake(self::$disk);
+    }
+
+    protected function afterRefreshingDatabase(): void
+    {
+        $migrations = [
+            require (__DIR__.'/../database/migrations/create_attachments_table.php.stub'),
+            require (__DIR__.'/../database/migrations/create_attachables_table.php.stub'),
+        ];
+
+        foreach ($migrations as $migration) {
+            $migration->up();
+        }
     }
 }

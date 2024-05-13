@@ -2,21 +2,42 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
-use Illuminate\Support\ServiceProvider;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 
-class LaravelAttachmentLibraryServiceProvider extends ServiceProvider
+class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
-    public function boot(): void
+    public function configurePackage(Package $package): void
     {
-        $this->publishes([
-            __DIR__.'/../config/attachments.php' => config_path('attachments.php'),
-        ]);
-
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $package->name('laravel-attachment-library')
+            ->hasConfigFile()
+            ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
+            ->runsMigrations()
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command->publishConfigFile()
+                    ->publishMigrations()
+                    ->copyAndRegisterServiceProviderInApp()
+                    ->setHidden(false)
+                    ->askToRunMigrations();
+            });
     }
 
-    public function register(): void
+    /**
+     * @throws IncompatibleClassMappingException
+     */
+    public function packageBooted(): void
     {
-        $this->app->bind('attachment.manager', AttachmentManager::class);
+        $attachmentManagerClass = config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class);
+
+        if (! is_a($attachmentManagerClass, AttachmentManager::class, true)) {
+            throw new IncompatibleClassMappingException($attachmentManagerClass, AttachmentManager::class);
+        }
+
+        app()->bind(
+            'attachment.manager',
+            config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class)
+        );
     }
 }

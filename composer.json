@@ -1,56 +1,61 @@
 {
-  "name": "van-ons/laravel-attachment-library",
-  "description": "A Laravel library for attaching files to Eloquent models.",
-  "keywords": [
-    "van ons",
-    "laravel",
-    "laravel-attachment-library",
-    "attachments",
-    "library",
-    "eloquent"
-  ],
-  "homepage": "https://github.com/VanOns/laravel-attachment-library",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Dangelo Brusorio",
-      "email": "dangelo@van-ons.nl"
+    "name": "van-ons/laravel-attachment-library",
+    "description": "A Laravel library for attaching files to Eloquent models.",
+    "keywords": [
+        "van ons",
+        "laravel",
+        "laravel-attachment-library",
+        "attachments",
+        "library",
+        "eloquent"
+    ],
+    "homepage": "https://github.com/VanOns/laravel-attachment-library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dangelo Brusorio",
+            "email": "dangelo@van-ons.nl"
+        },
+        {
+            "name": "Danique Wijnalda",
+            "email": "danique@van-ons.nl"
+        }
+    ],
+    "require": {
+        "spatie/laravel-package-tools": "^1.16"
     },
-    {
-      "name": "Danique Wijnalda",
-      "email": "danique@van-ons.nl"
-    }
-  ],
-  "require-dev": {
-    "larastan/larastan": "^2.9",
-    "laravel/pint": "^1.14",
-    "orchestra/testbench": "^8.21",
-    "phpunit/phpunit": "^10.1"
-  },
-  "scripts" : {
-    "analyse": "./vendor/bin/phpstan analyse",
-    "format": "./vendor/bin/pint",
-    "test": "./vendor/bin/phpunit"
-  },
-  "autoload": {
-    "psr-4": {
-      "VanOns\\LaravelAttachmentLibrary\\": "src",
-      "Database\\Factories\\": "database/factories/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "VanOns\\LaravelAttachmentLibrary\\Test\\": "tests"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
-      ]
-    }
-  },
-  "config" : {
-    "sort-packages": true
-  }
+    "require-dev": {
+        "larastan/larastan": "^2.9",
+        "laravel/pint": "^1.14",
+        "orchestra/testbench": "^8.21",
+        "phpunit/phpunit": "^10.1"
+    },
+    "scripts": {
+        "analyse": "./vendor/bin/phpstan analyse",
+        "format": "./vendor/bin/pint",
+        "test": "./vendor/bin/phpunit"
+    },
+    "autoload": {
+        "psr-4": {
+            "VanOns\\LaravelAttachmentLibrary\\": "src",
+            "VanOns\\LaravelAttachmentLibrary\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "VanOns\\LaravelAttachmentLibrary\\Test\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
-use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleModelConfigurationException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
@@ -21,31 +21,37 @@ class AttachmentManager
 {
     protected string $disk;
 
-    protected string $model;
+    protected string $attachmentClass;
+
+    protected string $directoryClass;
 
     protected string $allowedCharacters;
 
     /**
-     * @throws IncompatibleModelConfigurationException
+     * @throws IncompatibleClassMappingException
      */
     public function __construct()
     {
-        $this->disk = Config::get('attachments.disk', 'public');
-        $this->model = Config::get('attachments.model', Attachment::class);
-        $this->allowedCharacters = Config::get('attachments.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
+        $this->disk = Config::get('attachment-library.disk', 'public');
+        $this->attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
+        $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
+        $this->allowedCharacters = Config::get('attachment-library.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
-        $this->ensureCompatibleModel();
+        $this->ensureCompatibleClasses();
     }
 
     /**
      * Throw exception if configured model is not an instance of the Attachment model.
      *
-     * @throws IncompatibleModelConfigurationException
+     * @throws IncompatibleClassMappingException
      */
-    protected function ensureCompatibleModel(): void
+    protected function ensureCompatibleClasses(): void
     {
-        if (! is_a($this->model, Attachment::class, true)) {
-            throw new IncompatibleModelConfigurationException();
+        if (! is_a($this->attachmentClass, Attachment::class, true)) {
+            throw new IncompatibleClassMappingException($this->attachmentClass, Attachment::class);
+        }
+        if (! is_a($this->directoryClass, Directory::class, true)) {
+            throw new IncompatibleClassMappingException($this->directoryClass, Directory::class);
         }
     }
 
@@ -66,7 +72,12 @@ class AttachmentManager
      */
     public function directories(?string $path = null): Collection
     {
-        return collect($this->getFilesystem()->directories($path));
+        $directories = array_map(
+            fn ($directory) => new $this->directoryClass($directory),
+            $this->getFilesystem()->directories($path)
+        );
+
+        return Collection::make($directories);
     }
 
     protected function getFilesystem(): Filesystem
@@ -81,7 +92,7 @@ class AttachmentManager
      */
     public function files(?string $path): Collection
     {
-        return $this->model::whereDisk($this->disk)->wherePath($path)->get();
+        return $this->attachmentClass::whereDisk($this->disk)->wherePath($path)->get();
     }
 
     /**
@@ -105,11 +116,12 @@ class AttachmentManager
 
         $disk->put($path, $file->getContent());
 
-        return $this->model::create([
+        return $this->attachmentClass::create([
             'name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getClientMimeType(),
+            'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
+            'size' => $file->getSize(),
         ]);
     }
 
@@ -176,7 +188,7 @@ class AttachmentManager
      * @throws DestinationAlreadyExistsException if conflicting directory name exists.
      * @throws DisallowedCharacterException if directory contains disallowed characters.
      */
-    public function renameDirectory(string $currentPath, string $newName): void
+    public function renameDirectory(string $currentPath, string $newName): Directory
     {
         $this->validateBasename($newName);
 
@@ -192,10 +204,12 @@ class AttachmentManager
 
         $disk->move($currentPath, $newPath);
 
-        $attachments = $this->model::whereDisk($this->disk)->whereInPath($currentPath)->get();
+        $attachments = $this->attachmentClass::whereDisk($this->disk)->whereInPath($currentPath)->get();
         foreach ($attachments as $attachment) {
             $attachment->update(['path' => str_replace($currentPath, $newPath, $attachment->path)]);
         }
+
+        return new Directory($newPath);
     }
 
     /**
@@ -206,7 +220,7 @@ class AttachmentManager
      * @throws NoParentDirectoryException if there isn't an existing parent directory
      *                                    when not using the DirectoryStrategies::CREATE_PARENT_DIRECTORIES flag.
      */
-    public function createDirectory(string $path, DirectoryStrategies ...$flags): void
+    public function createDirectory(string $path, DirectoryStrategies ...$flags): Directory
     {
         $this->validatePath($path);
 
@@ -223,6 +237,8 @@ class AttachmentManager
         }
 
         $disk->makeDirectory($path);
+
+        return new Directory($path);
     }
 
     /**
@@ -242,7 +258,7 @@ class AttachmentManager
      */
     public function deleteDirectory(string $path): void
     {
-        $this->model::whereDisk($this->disk)->whereInPath($path)->delete();
+        $this->attachmentClass::whereDisk($this->disk)->whereInPath($path)->delete();
 
         $this->getFilesystem()->deleteDirectory($path);
     }
