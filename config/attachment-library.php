@@ -18,11 +18,11 @@ return [
      */
     'class_mapping' => [
         'attachment' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
-        'directory' => \VanOns\LaravelAttachmentLibrary\Directory::class,
+        'directory' => \VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory::class,
         'attachment_manager' => \VanOns\LaravelAttachmentLibrary\AttachmentManager::class,
     ],
 
     'attachment_type_mapping' => [
-        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentTypes::PREVIEWABLE => ['png', 'jpg', 'svg'],
+        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => ['png', 'jpg', 'svg'],
     ],
 ];

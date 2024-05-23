@@ -57,7 +57,7 @@ class Attachment extends Model
     public function filename(): Attribute
     {
         return Attribute::make(
-            get: fn () => implode('.', [$this->name, $this->extension])
+            get: fn () => implode('.', array_filter([$this->name, $this->extension]))
         );
     }
 

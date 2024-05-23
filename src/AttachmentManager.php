@@ -3,11 +3,13 @@
 namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mime\MimeTypes;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -109,11 +111,7 @@ class AttachmentManager
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
-        $originalFilename = $file->getClientOriginalName();
-
-        $name = pathinfo($originalFilename, PATHINFO_FILENAME);
-        $extension = $file->guessExtension() ?? pathinfo($originalFilename, PATHINFO_EXTENSION);
-        $filename = "{$name}.{$extension}";
+        $filename = new Filename($file);
 
         $this->validateBasename($filename);
 
@@ -127,8 +125,8 @@ class AttachmentManager
         $disk->put($path, $file->getContent());
 
         return $this->attachmentClass::create([
-            'name' => $name,
-            'extension' => $extension,
+            'name' => $filename->name,
+            'extension' => $filename->extension,
             'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
@@ -141,7 +139,7 @@ class AttachmentManager
      *
      * @throws DisallowedCharacterException if file name contains disallowed characters.
      */
-    protected function validateBasename(string $name): void
+    public function validateBasename(string $name): void
     {
         if (preg_match_all($this->allowedCharacters, $name)) {
             throw new DisallowedCharacterException();
@@ -310,7 +308,7 @@ class AttachmentManager
     public function isType(Attachment $file, string $type): bool
     {
         // Check if attachment extension matches the given type.
-        if(!in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])){
+        if (! in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])) {
             return false;
         }
 

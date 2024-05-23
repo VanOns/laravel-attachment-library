@@ -9,8 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
-use VanOns\LaravelAttachmentLibrary\Directory;
-use VanOns\LaravelAttachmentLibrary\Enums\AttachmentTypes;
+use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -359,8 +358,8 @@ class AttachmentManagerTest extends TestCase
 
         $attachmentB = self::$attachmentManager->upload($fileB, null);
 
-        self::assertTrue(self::$attachmentManager->isType($attachmentA, AttachmentTypes::PREVIEWABLE));
-        self::assertFalse(self::$attachmentManager->isType($attachmentB, AttachmentTypes::PREVIEWABLE));
+        self::assertTrue(self::$attachmentManager->isType($attachmentA, AttachmentType::PREVIEWABLE_IMAGE));
+        self::assertFalse(self::$attachmentManager->isType($attachmentB, AttachmentType::PREVIEWABLE_IMAGE));
     }
 
     public function testAssertDestinationExists()
