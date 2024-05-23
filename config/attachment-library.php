@@ -23,6 +23,7 @@ return [
     ],
 
     'attachment_type_mapping' => [
-        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => ['png', 'jpg', 'svg'],
+        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => ['png', 'jpg', 'svg', 'gif', 'webp', 'apng', 'bmp'],
+        \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_VIDEO => ['mp4', 'webm', 'ogg'],
     ],
 ];
