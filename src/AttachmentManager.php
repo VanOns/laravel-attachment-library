@@ -3,10 +3,13 @@
 namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Mime\MimeTypes;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -27,6 +30,8 @@ class AttachmentManager
 
     protected string $allowedCharacters;
 
+    protected array $attachmentTypeMapping;
+
     /**
      * @throws IncompatibleClassMappingException
      */
@@ -35,6 +40,7 @@ class AttachmentManager
         $this->disk = Config::get('attachment-library.disk', 'public');
         $this->attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
         $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
+        $this->attachmentTypeMapping = Config::get('attachment-library.attachment_type_mapping', []);
         $this->allowedCharacters = Config::get('attachment-library.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         $this->ensureCompatibleClasses();
@@ -105,9 +111,11 @@ class AttachmentManager
      */
     public function upload(UploadedFile $file, ?string $desiredPath): Attachment
     {
-        $this->validateBasename($file->getClientOriginalName());
+        $filename = new Filename($file);
 
-        $path = "{$desiredPath}/{$file->getClientOriginalName()}";
+        $this->validateBasename($filename);
+
+        $path = "{$desiredPath}/{$filename}";
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {
@@ -117,7 +125,8 @@ class AttachmentManager
         $disk->put($path, $file->getContent());
 
         return $this->attachmentClass::create([
-            'name' => $file->getClientOriginalName(),
+            'name' => $filename->name,
+            'extension' => $filename->extension,
             'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
@@ -130,7 +139,7 @@ class AttachmentManager
      *
      * @throws DisallowedCharacterException if file name contains disallowed characters.
      */
-    protected function validateBasename(string $name): void
+    public function validateBasename(string $name): void
     {
         if (preg_match_all($this->allowedCharacters, $name)) {
             throw new DisallowedCharacterException();
@@ -148,7 +157,7 @@ class AttachmentManager
         $this->validateBasename($name);
 
         $disk = $this->getFilesystem();
-        $path = "{$file->path}/{$name}";
+        $path = "{$file->path}/{$name}.{$file->extension}";
 
         if ($disk->exists($path)) {
             throw new DestinationAlreadyExistsException();
@@ -169,7 +178,7 @@ class AttachmentManager
     public function move(Attachment $file, string $desiredPath): void
     {
         $disk = $this->getFilesystem();
-        $path = "{$desiredPath}/{$file->name}";
+        $path = "{$desiredPath}/{$file->filename}";
 
         if ($disk->exists($path)) {
             throw new DestinationAlreadyExistsException();
@@ -291,5 +300,19 @@ class AttachmentManager
     public function getUrl(Attachment $file): string|bool
     {
         return Storage::disk($file->disk)->url($file->full_path);
+    }
+
+    /**
+     * Check if attachment is of given type.
+     */
+    public function isType(Attachment $file, string $type): bool
+    {
+        // Check if attachment extension matches the given type.
+        if (! in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])) {
+            return false;
+        }
+
+        // Check if attachment mime_type matches the extension.
+        return in_array($file->mime_type, MimeTypes::getDefault()->getMimeTypes($file->extension));
     }
 }

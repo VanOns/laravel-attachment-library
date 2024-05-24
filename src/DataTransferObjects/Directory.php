@@ -1,9 +1,9 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary;
+namespace VanOns\LaravelAttachmentLibrary\DataTransferObjects;
 
 /**
- * Data Transfer Object for directories
+ * Data Transfer Object for directories.
  */
 readonly class Directory
 {

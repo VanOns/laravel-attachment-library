@@ -2,7 +2,6 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Test;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -10,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -162,16 +162,16 @@ class AttachmentManagerTest extends TestCase
     public function testAssertRenameFile()
     {
         $fileNameA = "{$this->faker->firstName}.jpg";
-        $fileNameB = "{$this->faker->firstName}.jpg";
+        $fileNameB = "{$this->faker->firstName}";
         $file = UploadedFile::fake()->image($fileNameA);
 
         $attachment = self::$attachmentManager->upload($file, null);
 
-        self::assertEquals($attachment->name, $fileNameA);
+        self::assertEquals($attachment->filename, $fileNameA);
 
         self::$attachmentManager->rename($attachment, $fileNameB);
 
-        self::assertEquals($attachment->name, $fileNameB);
+        self::assertEquals($attachment->filename, "{$fileNameB}.jpg");
     }
 
     public function testAssertDirectoriesEmpty()
@@ -286,8 +286,8 @@ class AttachmentManagerTest extends TestCase
     {
         self::expectException(DestinationAlreadyExistsException::class);
 
-        $fileName = "{$this->faker->firstName}.jpg";
-        $fileA = UploadedFile::fake()->image($fileName);
+        $fileName = $this->faker->firstName;
+        $fileA = UploadedFile::fake()->image("{$fileName}.jpg");
         $fileB = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
 
         self::$attachmentManager->upload($fileA, null);
@@ -336,20 +336,6 @@ class AttachmentManagerTest extends TestCase
         self::$attachmentManager->createDirectory($directoryNameA);
     }
 
-    public function testAssertPreventDuplicateOnMove()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $fileName = "{$this->faker->firstName}.jpg";
-        $fileA = UploadedFile::fake()->image($fileName);
-        $fileB = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->upload($fileA, null);
-        $attachment = self::$attachmentManager->upload($fileB, null);
-
-        self::$attachmentManager->rename($attachment, $fileName);
-    }
-
     public function testAssertGetUrl()
     {
         $fileName = "{$this->faker->firstName}.jpg";
@@ -358,6 +344,22 @@ class AttachmentManagerTest extends TestCase
         $attachment = self::$attachmentManager->upload($file, null);
 
         self::assertEquals("/storage/{$fileName}", self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
+    }
+
+    public function testAssertIsType()
+    {
+        $fileNameA = "{$this->faker->firstName}.jpg";
+        $fileA = UploadedFile::fake()->image($fileNameA);
+
+        $attachmentA = self::$attachmentManager->upload($fileA, null);
+
+        $fileNameB = "{$this->faker->firstName}.txt";
+        $fileB = UploadedFile::fake()->create($fileNameB);
+
+        $attachmentB = self::$attachmentManager->upload($fileB, null);
+
+        self::assertTrue(self::$attachmentManager->isType($attachmentA, AttachmentType::PREVIEWABLE_IMAGE));
+        self::assertFalse(self::$attachmentManager->isType($attachmentB, AttachmentType::PREVIEWABLE_IMAGE));
     }
 
     public function testAssertDestinationExists()
@@ -392,28 +394,47 @@ class AttachmentManagerTest extends TestCase
         self::assertEmpty(self::$attachmentManager->files(null));
     }
 
-    public function testAssertIncompatibleModel()
+    public static function compatibleModelClassProvider(): array
+    {
+        return [
+            ['attachment-library.class_mapping.attachment', new class extends Attachment {}],
+            // TODO: implement once readonly classes are supported https://github.com/mockery/mockery/issues/1317
+            // ['attachment-library.class_mapping.directory', \Mockery::namedMock('ExtendedDirectory', Directory::class)]
+        ];
+    }
+
+    public static function incompatibleModelClassProvider(): array
+    {
+        return [
+            ['attachment-library.class_mapping.attachment'],
+            ['attachment-library.class_mapping.directory'],
+        ];
+    }
+
+    /**
+     * @dataProvider incompatibleModelClassProvider
+     */
+    public function testAssertIncompatibleAttachmentModel(string $config)
     {
         self::expectException(IncompatibleClassMappingException::class);
 
-        $mock = new class extends Model
+        $mock = new class
         {
         };
 
-        Config::set('attachment-library.class_mapping.attachment', $mock::class);
+        Config::set($config, $mock::class);
 
         new AttachmentManager();
     }
 
-    public function testAssertEnsureCompatibleModel()
+    /**
+     * @dataProvider compatibleModelClassProvider
+     */
+    public function testAssertCompatibleAttachmentModel(string $config, object $mock)
     {
         self::expectNotToPerformAssertions();
 
-        $mock = new class extends Attachment
-        {
-        };
-
-        Config::set('attachment-library.class_mapping.attachment', $mock::class);
+        Config::set($config, $mock::class);
 
         new AttachmentManager();
     }
