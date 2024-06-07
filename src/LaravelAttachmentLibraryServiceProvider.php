@@ -15,7 +15,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
             ->hasConfigFile(['glide'])
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
-            ->hasRoutes('../routes/web')
+            ->hasRoutes('../routes/web', '../src/Glide/web')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
