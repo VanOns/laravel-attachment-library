@@ -12,9 +12,10 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package->name('laravel-attachment-library')
-            ->hasConfigFile()
+            ->hasConfigFile(['glide'])
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
+            ->hasRoutes('../routes/web')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
@@ -27,7 +28,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     /**
      * @throws IncompatibleClassMappingException
      */
-    public function packageBooted(): void
+    public function bootingPackage()
     {
         $attachmentManagerClass = config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class);
 

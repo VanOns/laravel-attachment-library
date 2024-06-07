@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Query\Builder;
+use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
 use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
@@ -18,6 +20,7 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $mime_type
  * @property string $disk
  * @property string $path
+ * @property string $absolute_path
  * @property string $full_path
  * @property string $filename
  * @property int $size
@@ -52,6 +55,26 @@ class Attachment extends Model
     }
 
     /**
+     * Return attachment type.
+     */
+    public function type(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => AttachmentManager::getType($this)
+        );
+    }
+
+    /**
+     * Return attachment contents.
+     */
+    public function content(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => AttachmentManager::getContent($this)
+        );
+    }
+
+    /**
      * Return filename including extension.
      */
     public function filename(): Attribute
@@ -68,6 +91,16 @@ class Attachment extends Model
     {
         return Attribute::make(
             get: fn () => implode('/', array_filter([$this->path, $this->filename]))
+        );
+    }
+
+    /**
+     * Return path from root of filesystem including filename and extension.
+     */
+    public function absolutePath(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => AttachmentManager::getAbsolutePath($this)
         );
     }
 
@@ -89,5 +122,15 @@ class Attachment extends Model
     public function newEloquentBuilder($query): AttachmentQueryBuilder
     {
         return new AttachmentQueryBuilder($query);
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $pathinfo = pathinfo($value);
+        $directory = $pathinfo['dirname'] === '.' ? null : $pathinfo['dirname'];
+        $filename = new Filename($pathinfo['basename']);
+
+        return Attachment::wherePath($directory)->whereFilename($filename)->first()
+            ?? abort(Response::HTTP_NOT_FOUND);
     }
 }
