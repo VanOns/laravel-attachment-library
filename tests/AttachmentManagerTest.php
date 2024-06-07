@@ -346,6 +346,16 @@ class AttachmentManagerTest extends TestCase
         self::assertEquals(url("/files/{$fileName}"), self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
     }
 
+    public function testAssertAbsolutePath()
+    {
+        $fileName = "{$this->faker->firstName}.jpg";
+        $file = UploadedFile::fake()->image($fileName);
+
+        $attachment = self::$attachmentManager->upload($file, null);
+
+        self::assertEquals(Storage::disk(self::$disk)->path($fileName), $attachment->absolute_path);
+    }
+
     public function testAssertIsType()
     {
         $fileNameA = "{$this->faker->firstName}.jpg";

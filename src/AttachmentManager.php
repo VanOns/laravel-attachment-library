@@ -327,9 +327,4 @@ class AttachmentManager
 
         return null;
     }
-
-    public function getContent(Attachment $file): ?string
-    {
-        return Storage::disk($this->disk)->get($file->full_path);
-    }
 }

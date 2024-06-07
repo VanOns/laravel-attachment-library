@@ -66,16 +66,6 @@ class Attachment extends Model
     }
 
     /**
-     * Return attachment contents.
-     */
-    public function content(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => AttachmentManager::getContent($this)
-        );
-    }
-
-    /**
      * Return filename including extension.
      */
     public function filename(): Attribute
