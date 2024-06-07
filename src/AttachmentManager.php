@@ -7,7 +7,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Mime\MimeTypes;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
@@ -40,7 +39,7 @@ class AttachmentManager
         $this->disk = Config::get('attachment-library.disk', 'public');
         $this->attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
         $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
-        $this->attachmentTypeMapping = Config::get('attachment-library.attachment_type_mapping', []);
+        $this->attachmentTypeMapping = Config::get('attachment-library.attachment_mime_type_mapping', []);
         $this->allowedCharacters = Config::get('attachment-library.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
 
         $this->ensureCompatibleClasses();
@@ -299,7 +298,12 @@ class AttachmentManager
      */
     public function getUrl(Attachment $file): string|bool
     {
-        return Storage::disk($file->disk)->url($file->full_path);
+        return route('attachment', ['attachment' => $file->full_path]);
+    }
+
+    public function getAbsolutePath(Attachment $file): string
+    {
+        return Storage::disk($file->disk)->path($file->full_path);
     }
 
     /**
@@ -307,12 +311,25 @@ class AttachmentManager
      */
     public function isType(Attachment $file, string $type): bool
     {
-        // Check if attachment extension matches the given type.
-        if (! in_array($file->extension, $this->attachmentTypeMapping[$type] ?? [])) {
-            return false;
+        return in_array($file->mime_type, $this->attachmentTypeMapping[$type] ?? []);
+    }
+
+    /**
+     * Return type of attachment.
+     */
+    public function getType(Attachment $file): ?string
+    {
+        foreach ($this->attachmentTypeMapping as $key => $value) {
+            if (in_array($file->mime_type, $value)) {
+                return $key;
+            }
         }
 
-        // Check if attachment mime_type matches the extension.
-        return in_array($file->mime_type, MimeTypes::getDefault()->getMimeTypes($file->extension));
+        return null;
+    }
+
+    public function getContent(Attachment $file): ?string
+    {
+        return Storage::disk($this->disk)->get($file->full_path);
     }
 }

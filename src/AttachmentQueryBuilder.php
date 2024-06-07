@@ -3,6 +3,7 @@
 namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Database\Eloquent\Builder;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 
 class AttachmentQueryBuilder extends Builder
 {
@@ -29,5 +30,14 @@ class AttachmentQueryBuilder extends Builder
     {
         return $this->where('path', '=', $path)
             ->orWhere('path', 'LIKE', "{$path}/%");
+    }
+
+    /**
+     * Filter files by filename DTO.
+     */
+    public function whereFilename(Filename $filename): AttachmentQueryBuilder
+    {
+        return $this->where('name', '=', $filename->name)
+            ->where('extension', '=', $filename->extension);
     }
 }

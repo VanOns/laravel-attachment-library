@@ -15,6 +15,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
+            ->hasRoutes('../routes/web')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
@@ -27,7 +28,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     /**
      * @throws IncompatibleClassMappingException
      */
-    public function packageBooted(): void
+    public function bootingPackage()
     {
         $attachmentManagerClass = config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class);
 

@@ -15,15 +15,14 @@ readonly class Filename
 
     public ?string $extension;
 
-    public function __construct(UploadedFile $file)
+    public function __construct(UploadedFile|string $file)
     {
-        $filename = $file->getClientOriginalName();
-        $this->name = pathinfo($filename, PATHINFO_FILENAME);
+        if ($file instanceof UploadedFile) {
+            $file = $file->getClientOriginalName();
+        }
 
-        // Guess extension based on MIME-Type or grab extension from filename.
-        $extension = $file->guessExtension() ?? pathinfo($filename, PATHINFO_EXTENSION);
-
-        // Set extension to null if extension isn't known.
+        $this->name = pathinfo($file, PATHINFO_FILENAME);
+        $extension = pathinfo($file, PATHINFO_EXTENSION);
         $this->extension = $extension === '' ? null : $extension;
     }
 
