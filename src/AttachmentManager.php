@@ -301,6 +301,9 @@ class AttachmentManager
         return route('attachment', ['attachment' => $file->full_path]);
     }
 
+    /**
+     * Return absolute path from root of server.
+     */
     public function getAbsolutePath(Attachment $file): string
     {
         return Storage::disk($file->disk)->path($file->full_path);

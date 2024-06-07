@@ -115,6 +115,9 @@ class Attachment extends Model
         return new AttachmentQueryBuilder($query);
     }
 
+    /**
+     * Bind controller parameter to retrieve attachment.
+     */
     public function resolveRouteBinding($value, $field = null)
     {
         $pathinfo = pathinfo($value);
