@@ -32,7 +32,18 @@ class Attachment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'extension', 'mime_type', 'disk', 'path', 'size'];
+    protected $fillable = [
+        'alt',
+        'caption',
+        'description',
+        'disk',
+        'extension',
+        'mime_type',
+        'name',
+        'path',
+        'size',
+        'title',
+    ];
 
     protected static function newFactory(): Factory
     {
