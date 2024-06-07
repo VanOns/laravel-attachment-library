@@ -12,7 +12,7 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package->name('laravel-attachment-library')
-            ->hasConfigFile()
+            ->hasConfigFile(['glide'])
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
             ->hasRoutes('../routes/web')
