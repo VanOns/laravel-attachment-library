@@ -303,7 +303,7 @@ class AttachmentManagerTest extends TestCase
         $directoryName = $this->faker->firstName;
         self::$attachmentManager->createDirectory($directoryName);
 
-        $fileName = $this->faker->firstName;
+        $fileName = "{$this->faker->firstName}.jpg";
         $fileA = UploadedFile::fake()->image($fileName);
         self::$attachmentManager->upload($fileA, $directoryName);
 
@@ -343,7 +343,17 @@ class AttachmentManagerTest extends TestCase
 
         $attachment = self::$attachmentManager->upload($file, null);
 
-        self::assertEquals("/storage/{$fileName}", self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
+        self::assertEquals(url("/files/{$fileName}"), self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
+    }
+
+    public function testAssertAbsolutePath()
+    {
+        $fileName = "{$this->faker->firstName}.jpg";
+        $file = UploadedFile::fake()->image($fileName);
+
+        $attachment = self::$attachmentManager->upload($file, null);
+
+        self::assertEquals(Storage::disk(self::$disk)->path($fileName), $attachment->absolute_path);
     }
 
     public function testAssertIsType()
@@ -397,7 +407,9 @@ class AttachmentManagerTest extends TestCase
     public static function compatibleModelClassProvider(): array
     {
         return [
-            ['attachment-library.class_mapping.attachment', new class extends Attachment {}],
+            ['attachment-library.class_mapping.attachment', new class extends Attachment
+            {
+            }],
             // TODO: implement once readonly classes are supported https://github.com/mockery/mockery/issues/1317
             // ['attachment-library.class_mapping.directory', \Mockery::namedMock('ExtendedDirectory', Directory::class)]
         ];
@@ -448,7 +460,7 @@ class AttachmentManagerTest extends TestCase
             self::expectException(DisallowedCharacterException::class);
         }
 
-        $file = UploadedFile::fake()->image($this->faker->firstName);
+        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
 
         $attachment = self::$attachmentManager->upload($file, null);
 
@@ -485,6 +497,9 @@ class AttachmentManagerTest extends TestCase
         Storage::fake(self::$disk);
 
         Config::set('attachment-library.disk', self::$disk);
+        Config::set('attachment-library.attachment_mime_type_mapping', [
+            AttachmentType::PREVIEWABLE_IMAGE => ['image/jpeg'],
+        ]);
 
         self::$attachmentManager = new AttachmentManager();
     }
