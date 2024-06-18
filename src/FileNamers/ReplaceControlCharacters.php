@@ -2,8 +2,6 @@
 
 namespace VanOns\LaravelAttachmentLibrary\FileNamers;
 
-use Illuminate\Support\Facades\Config;
-
 class ReplaceControlCharacters extends FileNamer
 {
     private array $search;
@@ -12,8 +10,8 @@ class ReplaceControlCharacters extends FileNamer
 
     public function __construct()
     {
-        $this->search = Config::get('attachment-library.replace_control_character_mapping.search', []);
-        $this->replace = Config::get('attachment-library.replace_control_character_mapping.replace', []);
+        $this->search = $this->getConfig('search', []);
+        $this->replace = $this->getConfig('replace', []);
     }
 
     public function execute(string $value): string

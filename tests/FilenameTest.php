@@ -48,7 +48,7 @@ class FilenameTest extends TestCase
 
         Config::set('attachment-library.file_namers', [(new class
         {
-        })::class]);
+        })::class => null]);
 
         new Filename('asd');
     }

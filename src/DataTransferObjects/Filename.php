@@ -47,7 +47,7 @@ readonly class Filename
     {
         $fileNamers = Config::get('attachment-library.file_namers', []);
 
-        foreach ($fileNamers as $fileNamer) {
+        foreach (array_keys($fileNamers) as $fileNamer) {
             $this->validateFileNamer($fileNamer);
 
             $name = (new $fileNamer)->execute($name);

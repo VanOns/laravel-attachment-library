@@ -67,27 +67,20 @@ return [
     ],
 
     /**
-     * Classes that manipulate file names.
+     * Classes including configuration that manipulate file names.
      */
     'file_namers' => [
-        \VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters::class,
-    ],
-
-    /**
-     * Regex search values that must be replaced by another value.
-     *
-     * Can only be used if ReplaceControlCharacters is present in: file_namers.
-     */
-    'replace_control_character_mapping' => [
-        'search' => [
-            "/\u{AD}/u",
-            "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u", // Whitespace characters
-            "/\p{C}/u", // To prevent corrupted path exception in WhiteSpaceNormalizer
-        ],
-        'replace' => [
-            '-',
-            ' ',
-            '',
+        \VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters::class => [
+            'search' => [
+                "/\u{AD}/u",
+                "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u", // Whitespace characters
+                "/\p{C}/u", // To prevent corrupted path exception in WhiteSpaceNormalizer
+            ],
+            'replace' => [
+                '-',
+                ' ',
+                '',
+            ],
         ],
     ],
 ];

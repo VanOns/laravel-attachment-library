@@ -11,7 +11,7 @@ class IncompatibleClassMappingException extends \Exception
         ?\Throwable $previous = null
     ) {
         parent::__construct(
-            sprintf('The %s class does not extend the %s class.', $givenClass, $requiredClass),
+            "The {$givenClass} class does not extend the {$requiredClass} class.",
             $code,
             $previous
         );
