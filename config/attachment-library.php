@@ -11,7 +11,7 @@ return [
     /**
      * Regular expression for defining allowed characters for file and directory names.
      */
-    'allowed_characters' => '/[^\\pL\\pN_\.\- ]+/u',
+    'allowed_characters' => '/[^\\pL\\pN_\.\- ()\x{AD}]+/u',
 
     /**
      * Class mapping for objects used in package.
@@ -63,6 +63,24 @@ return [
             'application/xml',
             'text/plain',
             'text/xml',
+        ],
+    ],
+
+    /**
+     * Classes including configuration that manipulate file names.
+     */
+    'file_namers' => [
+        \VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters::class => [
+            'search' => [
+                "/\u{AD}/u",
+                "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u", // Whitespace characters
+                "/\p{C}/u", // To prevent corrupted path exception in WhiteSpaceNormalizer
+            ],
+            'replace' => [
+                '-',
+                ' ',
+                '',
+            ],
         ],
     ],
 ];

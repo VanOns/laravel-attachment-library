@@ -2,19 +2,16 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Exceptions;
 
-use Exception;
-use Throwable;
-
-class IncompatibleClassMappingException extends Exception
+class IncompatibleClassMappingException extends \Exception
 {
     public function __construct(
         string $givenClass = 'given',
         string $requiredClass = 'required',
         int $code = 0,
-        ?Throwable $previous = null
+        ?\Throwable $previous = null
     ) {
         parent::__construct(
-            sprintf('The %s class does not extend the %s class.', $givenClass, $requiredClass),
+            "The {$givenClass} class does not extend the {$requiredClass} class.",
             $code,
             $previous
         );
