@@ -3,6 +3,10 @@
 namespace VanOns\LaravelAttachmentLibrary\DataTransferObjects;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
+use VanOns\LaravelAttachmentLibrary\Exceptions\ClassDoesNotExistException;
+use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
+use VanOns\LaravelAttachmentLibrary\FileNamers\FileNamer;
 
 /**
  * Data Transfer Object for filenames.
@@ -21,13 +25,50 @@ readonly class Filename
             $file = $file->getClientOriginalName();
         }
 
-        $this->name = pathinfo($file, PATHINFO_FILENAME);
+        $filename = pathinfo($file, PATHINFO_FILENAME);
+        $this->name = $this->formatFilename($filename);
+
         $extension = pathinfo($file, PATHINFO_EXTENSION);
         $this->extension = $extension === '' ? null : $extension;
     }
 
+    /**
+     * Return filename including extension.
+     */
     public function __toString(): string
     {
         return implode('.', array_filter([$this->name, $this->extension]));
+    }
+
+    /**
+     * Formats given filename according to configured FileNamers.
+     */
+    private function formatFilename(string $name): string
+    {
+        $fileNamers = Config::get('attachment-library.file_namers', []);
+
+        foreach ($fileNamers as $fileNamer) {
+            $this->validateFileNamer($fileNamer);
+
+            $name = (new $fileNamer)->execute($name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * Performs validation on a FileNamer.
+     *
+     * @throws ClassDoesNotExistException if $fileNamer isn't a class
+     * @throws IncompatibleClassMappingException if $fileNamer does not extend FileNamer
+     */
+    private function validateFileNamer(string $fileNamer): void
+    {
+        if (! class_exists($fileNamer)) {
+            throw new ClassDoesNotExistException($fileNamer);
+        }
+        if (! is_a($fileNamer, FileNamer::class, true)) {
+            throw new IncompatibleClassMappingException($fileNamer, FileNamer::class);
+        }
     }
 }
