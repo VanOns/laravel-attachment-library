@@ -66,10 +66,18 @@ return [
         ],
     ],
 
+    /**
+     * Classes that manipulate file names.
+     */
     'file_namers' => [
         \VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters::class,
     ],
 
+    /**
+     * Regex search values that must be replaced by another value.
+     *
+     * Can only be used if ReplaceControlCharacters is present in: file_namers.
+     */
     'replace_control_character_mapping' => [
         'search' => [
             "/\u{AD}/u",
