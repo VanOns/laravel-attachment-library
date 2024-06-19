@@ -15,16 +15,20 @@ use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
- * @property string $name
- * @property string $extension
- * @property string $mime_type
- * @property string $disk
- * @property string $path
- * @property string $absolute_path
- * @property string $full_path
- * @property string $filename
- * @property string $url
+ * @property int $bits
+ * @property int $channels
+ * @property int $created_by
  * @property int $size
+ * @property int $updated_by
+ * @property string $absolute_path
+ * @property string $disk
+ * @property string $extension
+ * @property string $filename
+ * @property string $full_path
+ * @property string $mime_type
+ * @property string $name
+ * @property string $path
+ * @property string $url
  *
  * @mixin AttachmentQueryBuilder
  */
@@ -34,8 +38,12 @@ class Attachment extends Model
 
     protected $fillable = [
         'alt',
+        'bits',
         'caption',
+        'channels',
+        'created_by',
         'description',
+        'dimensions',
         'disk',
         'extension',
         'mime_type',
@@ -43,6 +51,7 @@ class Attachment extends Model
         'path',
         'size',
         'title',
+        'updated_by',
     ];
 
     protected static function newFactory(): Factory

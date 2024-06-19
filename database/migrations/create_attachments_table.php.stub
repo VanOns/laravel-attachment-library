@@ -23,6 +23,11 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('alt')->nullable();
             $table->string('caption')->nullable();
+            $table->string('dimensions')->nullable();
+            $table->string('bits')->nullable();
+            $table->string('channels')->nullable();
+            $table->string('created_by')->nullable();
+            $table->string('updated_by')->nullable();
             $table->timestamps();
         });
     }
