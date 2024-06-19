@@ -21,6 +21,10 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property int $size
  * @property int $updated_by
  * @property string $absolute_path
+ * @property string $alt
+ * @property string $caption
+ * @property string $description
+ * @property string $dimensions
  * @property string $disk
  * @property string $extension
  * @property string $filename
