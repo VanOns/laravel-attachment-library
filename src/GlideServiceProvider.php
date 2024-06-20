@@ -1,11 +1,13 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Glide;
+namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Support\ServiceProvider;
 use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
+use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
+use VanOns\LaravelAttachmentLibrary\Glide\SizeParser;
 
 class GlideServiceProvider extends ServiceProvider
 {
@@ -14,7 +16,7 @@ class GlideServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(Server::class, function () {
+        app()->bind(Server::class, function () {
             return ServerFactory::create([
                 'driver' => config('glide.driver'),
                 'source' => config('glide.source'),
@@ -27,8 +29,14 @@ class GlideServiceProvider extends ServiceProvider
             ]);
         });
 
-        $this->app->bind(GlideDTO::class, function () {
-            return new GlideDTO();
+        $this->app->bind('attachment.size.parser', function () {
+            return new SizeParser(config('glide.breakpoints'));
+        });
+
+        app()->bind('attachment.resizer', function () {
+            return new Resizer(
+                config('glide.sizes')
+            );
         });
     }
 }

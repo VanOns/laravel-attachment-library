@@ -1,6 +1,6 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Glide;
+namespace VanOns\LaravelAttachmentLibrary\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;

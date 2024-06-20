@@ -51,7 +51,7 @@
         "laravel": {
             "providers": [
                 "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider",
-                "VanOns\\LaravelAttachmentLibrary\\Glide\\GlideServiceProvider"
+                "VanOns\\LaravelAttachmentLibrary\\GlideServiceProvider"
             ]
         }
     },

@@ -6,6 +6,7 @@ use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
+use VanOns\LaravelAttachmentLibrary\View\Components\Image;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
@@ -15,7 +16,9 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
             ->hasConfigFile(['glide'])
             ->hasMigrations(['create_attachments_table', 'create_attachables_table'])
             ->runsMigrations()
-            ->hasRoutes('../routes/web', '../src/Glide/web')
+            ->hasViews('laravel-attachment-library')
+            ->hasViewComponent('laravel-attachment-library', Image::class)
+            ->hasRoutes('../routes/web')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
