@@ -9,6 +9,7 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver;
+use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver2;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
@@ -42,9 +43,6 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 
         app()->bind('attachment.manager', $attachmentManagerClass);
 
-        // Observe attachment class with configured observer.
-        $attachmentObserverClass = config('attachment-library.class_mapping.attachment_observer', AttachmentObserver::class);
-
-        Config::get('attachment-library.class_mapping.attachment', Attachment::class)::observe($attachmentObserverClass);
+        Config::get('attachment-library.class_mapping.attachment', Attachment::class)::observe(AttachmentObserver::class);
     }
 }

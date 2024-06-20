@@ -11,7 +11,7 @@ abstract class MetadataAdapter
 
     public function getMetadata(string $path): FileMetadata|bool
     {
-        $cacheKey = "{$this->cacheKey}-{$path}";
+        $cacheKey = hash('sha256', "{$this->cacheKey}-{$path}");
         $cachedItem = Cache::get($cacheKey);
 
         if ($cachedItem !== null) {

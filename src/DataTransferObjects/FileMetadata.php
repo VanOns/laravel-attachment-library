@@ -3,7 +3,7 @@
 namespace VanOns\LaravelAttachmentLibrary\DataTransferObjects;
 
 /**
- *  A DTO class for image metadata.
+ *  A DTO class for file metadata.
  */
 readonly class FileMetadata
 {

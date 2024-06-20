@@ -9,7 +9,7 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
-     * Metadata retrievers used for extra file metadata.
+     * Map file metadata retrievers to array of MIME-types.
      *
      * Use '*' for wildcard.
      */
@@ -27,13 +27,12 @@ return [
      */
     'class_mapping' => [
         'attachment' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
-        'attachment_observer' => \VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver::class,
         'attachment_manager' => \VanOns\LaravelAttachmentLibrary\AttachmentManager::class,
         'directory' => \VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory::class,
     ],
 
     /**
-     * Map AttachmentType to MIME-types.
+     * Map AttachmentType to array of MIME-types.
      */
     'attachment_mime_type_mapping' => [
         \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => [
