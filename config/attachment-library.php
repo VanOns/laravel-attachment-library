@@ -28,7 +28,7 @@ return [
      */
     'class_mapping' => [
         'attachment' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
-        'attachment_observer' => \VanOns\LaravelAttachmentLibrary\Models\Attachment::class,
+        'attachment_observer' => \VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver::class,
         'attachment_manager' => \VanOns\LaravelAttachmentLibrary\AttachmentManager::class,
         'directory' => \VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory::class,
     ],
