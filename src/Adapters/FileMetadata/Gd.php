@@ -11,7 +11,11 @@ class Gd extends MetadataAdapter
 {
     protected function retrieve(string $path): FileMetadata|bool
     {
-        $imageInfo = getimagesize($path);
+        try {
+            $imageInfo = getimagesize($path);
+        } catch (\ErrorException $e) {
+            return false;
+        }
 
         if (! $imageInfo) {
             return false;

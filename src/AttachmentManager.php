@@ -11,7 +11,6 @@ use VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\MetadataAdapter;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
-use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
@@ -129,25 +128,14 @@ class AttachmentManager
 
         $disk->put($path, $file->getContent());
 
-        $fields = [
+        return $this->attachmentClass::create([
             'name' => $filename->name,
             'extension' => $filename->extension,
             'mime_type' => $file->getMimeType(),
             'disk' => $this->disk,
             'path' => $desiredPath,
             'size' => $file->getSize(),
-        ];
-
-        $isImage = in_array($file->getMimeType(), $this->attachmentTypeMapping[AttachmentType::PREVIEWABLE_IMAGE]);
-        $imageInfo = getimagesize($disk->path($path));
-
-        if ($isImage && $imageInfo) {
-            $fields['dimensions'] = "{$imageInfo[0]}x{$imageInfo[1]}";
-            $fields['bits'] = $imageInfo['bits'] ?? null;
-            $fields['channels'] = $imageInfo['channels'] ?? null;
-        }
-
-        return $this->attachmentClass::create($fields);
+        ]);
     }
 
     /**

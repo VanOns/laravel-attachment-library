@@ -42,7 +42,6 @@ class Attachment extends Model
         'caption',
         'created_by',
         'description',
-        'dimensions',
         'disk',
         'extension',
         'mime_type',

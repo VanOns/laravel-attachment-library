@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Test;
 
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -500,6 +501,9 @@ class AttachmentManagerTest extends TestCase
         Config::set('attachment-library.attachment_mime_type_mapping', [
             AttachmentType::PREVIEWABLE_IMAGE => ['image/jpeg'],
         ]);
+
+        $user = new User();
+        $this->be($user);
 
         self::$attachmentManager = new AttachmentManager();
     }
