@@ -353,7 +353,6 @@ class AttachmentManager
      */
     public function getMetadata(Attachment $file): FileMetadata|false
     {
-
         foreach ($this->metadataRetrievers as $metadataRetriever => $mimeTypes) {
             $matchesMime = array_filter($mimeTypes, fn ($mimeType) => fnmatch($mimeType, $file->mime_type));
 
