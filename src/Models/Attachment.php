@@ -15,8 +15,6 @@ use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
- * @property int $bits
- * @property int $channels
  * @property int $created_by
  * @property int $size
  * @property int $updated_by
@@ -24,7 +22,6 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $alt
  * @property string $caption
  * @property string $description
- * @property string $dimensions
  * @property string $disk
  * @property string $extension
  * @property string $filename
@@ -42,9 +39,7 @@ class Attachment extends Model
 
     protected $fillable = [
         'alt',
-        'bits',
         'caption',
-        'channels',
         'created_by',
         'description',
         'dimensions',
@@ -126,6 +121,16 @@ class Attachment extends Model
     {
         return Attribute::make(
             get: fn () => AttachmentManager::getUrl($this)
+        );
+    }
+
+    /**
+     * Return file metadata.
+     */
+    public function imageMetadata(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => AttachmentManager::getMetadata($this)
         );
     }
 

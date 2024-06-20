@@ -9,6 +9,16 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
+     * Metadata retrievers used for extra file metadata.
+     *
+     * Use '*' for wildcard.
+     */
+    'metadata_retrievers' => [
+        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd::class => ['image/.*'],
+        //        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Imagick::class => ['image/*', 'application/pdf']
+    ],
+
+    /**
      * Regular expression for defining allowed characters for file and directory names.
      */
     'allowed_characters' => '/[^\\pL\\pN_\.\- ()\x{AD}]+/u',
