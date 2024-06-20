@@ -11,9 +11,13 @@ class Image extends Component
     public null|string|int|Attachment $src;
 
     public array $sizes;
+
     public string|float|null $aspectRatio;
+
     public array $breakpoints;
+
     public array $formats;
+
     public string $class;
 
     /**
@@ -21,7 +25,7 @@ class Image extends Component
      *
      * @return void
      */
-    public function __construct(null|string|int|Attachment $src = null, string $sizes = 'full', string|float $aspectRatio = null, string $class = '')
+    public function __construct(null|string|int|Attachment $src = null, string $sizes = 'full', string|float|null $aspectRatio = null, string $class = '')
     {
         $this->src = $src;
         $this->sizes = SizeParser::parse($sizes);

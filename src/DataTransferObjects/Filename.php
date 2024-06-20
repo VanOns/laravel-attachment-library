@@ -19,17 +19,18 @@ readonly class Filename
 
     public ?string $extension;
 
+    public ?string $path;
+
     public function __construct(UploadedFile|string $file)
     {
         if ($file instanceof UploadedFile) {
             $file = $file->getClientOriginalName();
         }
 
-        $filename = pathinfo($file, PATHINFO_FILENAME);
-        $this->name = $this->formatFilename($filename);
-
-        $extension = pathinfo($file, PATHINFO_EXTENSION);
-        $this->extension = $extension === '' ? null : $extension;
+        $pathInfo = pathinfo($file);
+        $this->name = $pathInfo['filename'];
+        $this->extension = $pathInfo['extension'] === '' ? null : $pathInfo['extension'];
+        $this->path = $pathInfo['dirname'] === '.' ? null : $pathInfo['dirname'];
     }
 
     /**

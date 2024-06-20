@@ -12,12 +12,12 @@ return [
      * The breakpoints that are used in the application.
      */
     'breakpoints' => [
-        "xxs" => 320,
-        "xs" => 375,
-        "sm" => 480,
-        "md" => 786,
-        "lg" => 1024,
-        "xl" => 1440
+        'xxs' => 320,
+        'xs' => 375,
+        'sm' => 480,
+        'md' => 786,
+        'lg' => 1024,
+        'xl' => 1440,
     ],
 
     /**
@@ -30,7 +30,7 @@ return [
         'full' => 1,
         'large' => 0.75,
         'medium' => 0.50,
-        'small' => 0.25
+        'small' => 0.25,
     ],
 
     /**
@@ -38,5 +38,5 @@ return [
      * Formats should be put in order from best to worst, browsers will attempt to load the formats in order
      * Example: With [ 'webp' , 'jpg' ] browsers will attempt to load webp before jpg.
      */
-    'formats' => [ 'webp', 'jpg' ]
+    'formats' => ['webp', 'jpg'],
 ];

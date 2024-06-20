@@ -4,12 +4,15 @@ namespace VanOns\LaravelAttachmentLibrary\Glide;
 
 class SizeParser
 {
-    public function __construct(public array $breakpoints = []) {}
+    public function __construct(public array $breakpoints = [])
+    {
+    }
 
     public function parse(string $sizes): array
     {
         $fallback = $this->getDefaultSize($sizes);
         $foundSizes = $this->getSizes($sizes);
+
         return $this->supplementSizes($foundSizes, $fallback);
     }
 
@@ -17,12 +20,12 @@ class SizeParser
     {
         $output = [];
 
-        foreach(array_keys($this->breakpoints) as $breakpoint) {
+        foreach (array_keys($this->breakpoints) as $breakpoint) {
             $output[$breakpoint] = $foundSizes[$breakpoint] ?? null;
         }
 
         $previous = $fallback;
-        foreach(array_keys($this->breakpoints) as $breakpoint) {
+        foreach (array_keys($this->breakpoints) as $breakpoint) {
             if ($output[$breakpoint] === null) {
                 $output[$breakpoint] = $previous;
             }

@@ -131,11 +131,6 @@ class Attachment extends Model
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        $pathinfo = pathinfo($value);
-        $directory = $pathinfo['dirname'] === '.' ? null : $pathinfo['dirname'];
-        $filename = new Filename($pathinfo['basename']);
-
-        return Attachment::wherePath($directory)->whereFilename($filename)->first()
-            ?? abort(Response::HTTP_NOT_FOUND);
+        return Attachment::whereFilename(new Filename($value))->first() ?? abort(Response::HTTP_NOT_FOUND);
     }
 }

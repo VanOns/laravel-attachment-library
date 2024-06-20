@@ -101,6 +101,16 @@ class AttachmentManager
     }
 
     /**
+     * Return single file or null for given path.
+     *
+     * @param  string|null  $path  Use `null` for root of disk.
+     */
+    public function file(?string $path): ?Attachment
+    {
+        return $this->attachmentClass::whereDisk($this->disk)->whereFilename(new Filename($path))->first();
+    }
+
+    /**
      * Upload a file to the selected disk under the desired path and create a database entry.
      *
      * @param  string|null  $desiredPath  Use `null` for root of disk.

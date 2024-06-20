@@ -12,4 +12,3 @@ Route::get('files/{attachment}', AttachmentController::class)
 Route::get('img/{path}', GlideController::class)
     ->where('path', '.*')
     ->name('glide');
-

@@ -2,48 +2,58 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Glide;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-use League\Glide\Urls\UrlBuilder;
+use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class Resizer
 {
     public ?string $path = null;
+
     public ?int $width = null;
+
     public ?int $height = null;
+
     public ?string $format = 'jpg';
+
     public ?string $size = 'full';
+
     public ?float $aspectRatio = null;
 
-    public function __construct(public array $sizes) {}
+    public function __construct(public array $sizes)
+    {
+    }
 
     public function src(string|int|Attachment $src): static
     {
         $this->path = $this->getPath($src);
+
         return $this;
     }
 
     public function path(?string $path): static
     {
         $this->path = $path;
+
         return $this;
     }
 
     public function width(int $width): static
     {
         $this->width = $width;
+
         return $this;
     }
 
     public function height(int $height): static
     {
         $this->height = $height;
+
         return $this;
     }
 
-    public function calculateWidth(): ?int
+    public function calculateWidth(): ?float
     {
         if ($this->width) {
             return round($this->width * $this->getSizeRatio());
@@ -67,7 +77,7 @@ class Resizer
         return null;
     }
 
-    public function calculateHeight(): ?int
+    public function calculateHeight(): ?float
     {
         if ($this->height) {
             return round($this->height * $this->getSizeRatio());
@@ -94,6 +104,7 @@ class Resizer
     public function size(string $size): static
     {
         $this->size = $size;
+
         return $this;
     }
 
@@ -107,7 +118,8 @@ class Resizer
         $file = public_path($this->path);
 
         if (is_file($file) && Str::startsWith(mime_content_type($file), 'image/')) {
-            [$width, $height,] = getimagesize($file);
+            [$width, $height] = getimagesize($file);
+
             return [$width, $height];
         }
 
@@ -129,6 +141,7 @@ class Resizer
     public function format(string $format): static
     {
         $this->format = $format;
+
         return $this;
     }
 
@@ -138,15 +151,14 @@ class Resizer
     protected function getPath(string|int|Attachment $src): ?string
     {
         if (is_numeric($src)) {
-            return Attachment::find($src)->absolute_path;
+            /* @var Attachment $attachment */
+            $attachment = Attachment::find($src);
+
+            return $attachment->full_path;
         }
 
         if ($src instanceof Attachment) {
             return $src->full_path;
-        }
-
-        if (Str::isUrl($src)) {
-            return $this->getPathFromSrcUrl($src);
         }
 
         return $this->getPathFromSrcPath($src);
@@ -157,54 +169,18 @@ class Resizer
      */
     protected function getPathFromSrcPath(string $src): ?string
     {
-        if (file_exists(public_path($src))) {
-            return $src;
+        $attachment = AttachmentManager::file($src);
+
+        if ($attachment === null) {
+            throw new \Exception('Could not generate a path from the given src: '.$src);
         }
 
-        if (Str::startsWith($src, storage_path('app/public'))) {
-            return Str::replace(storage_path('app/public'), 'storage', $src);
-        }
-
-        throw new \Exception('Could not generate a path from the given src: ' . $src);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function getPathFromSrcUrl(string $src): ?string
-    {
-        if (Str::startsWith($src, config('app.url'))) {
-            return Str::replace(config('app.url'), '', $src);
-        }
-
-        return $this->getPathFromExternalSrc($src);
-    }
-
-    protected function getPathFromExternalSrc(string $src): ?string
-    {
-        $disk = Storage::disk('public');
-        $file = 'external/' . hash('sha256', $src);
-
-        if ($disk->exists($file)) {
-            return Storage::url($file);
-        }
-
-        // This is probably a bit slow, but I'm not sure if this situation occurs often enough to warrant a better solution
-        if (!$data = getimagesize($src)) {
-            throw new \Exception('Could not generate a path from the given src: ' . $src);
-        }
-
-        if (!Str::startsWith($data['mime'], 'image/')) {
-            throw new \Exception('Could not generate a path from the given src: ' . $src);
-        }
-
-        $disk->put($file, file_get_contents($src));
-        return Storage::url($file);
+        return $attachment->full_path;
     }
 
     public function cacheKey(): string
     {
-        return sha1($this->path . $this->width . $this->height . $this->format . $this->size . $this->aspectRatio);
+        return sha1($this->path.$this->width.$this->height.$this->format.$this->size.$this->aspectRatio);
     }
 
     public function resize(): array
