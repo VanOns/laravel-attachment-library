@@ -126,7 +126,7 @@ class Attachment extends Model
     /**
      * Return file metadata.
      */
-    public function imageMetadata(): Attribute
+    public function metadata(): Attribute
     {
         return Attribute::make(
             get: fn () => AttachmentManager::getMetadata($this)
