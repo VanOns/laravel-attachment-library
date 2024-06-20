@@ -15,7 +15,6 @@ return [
      */
     'metadata_retrievers' => [
         \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd::class => ['image/*'],
-        //        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Imagick::class => ['image/*', 'application/pdf']
     ],
 
     /**
