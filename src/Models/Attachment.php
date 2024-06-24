@@ -15,16 +15,21 @@ use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
- * @property string $name
- * @property string $extension
- * @property string $mime_type
- * @property string $disk
- * @property string $path
- * @property string $absolute_path
- * @property string $full_path
- * @property string $filename
- * @property string $url
+ * @property int $created_by
  * @property int $size
+ * @property int $updated_by
+ * @property string $absolute_path
+ * @property string $alt
+ * @property string $caption
+ * @property string $description
+ * @property string $disk
+ * @property string $extension
+ * @property string $filename
+ * @property string $full_path
+ * @property string $mime_type
+ * @property string $name
+ * @property string $path
+ * @property string $url
  *
  * @mixin AttachmentQueryBuilder
  */
@@ -35,6 +40,7 @@ class Attachment extends Model
     protected $fillable = [
         'alt',
         'caption',
+        'created_by',
         'description',
         'disk',
         'extension',
@@ -43,6 +49,7 @@ class Attachment extends Model
         'path',
         'size',
         'title',
+        'updated_by',
     ];
 
     protected static function newFactory(): Factory
@@ -113,6 +120,16 @@ class Attachment extends Model
     {
         return Attribute::make(
             get: fn () => AttachmentManager::getUrl($this)
+        );
+    }
+
+    /**
+     * Return file metadata.
+     */
+    public function metadata(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => AttachmentManager::getMetadata($this)
         );
     }
 
