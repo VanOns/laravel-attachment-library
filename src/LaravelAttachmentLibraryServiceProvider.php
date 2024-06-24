@@ -9,7 +9,6 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver;
-use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver2;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
