@@ -7,7 +7,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\MetadataAdapter;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\DirectoryStrategies;
 use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException;
@@ -27,6 +29,8 @@ class AttachmentManager
 
     protected string $directoryClass;
 
+    protected array $metadataRetrievers;
+
     protected string $allowedCharacters;
 
     protected array $attachmentTypeMapping;
@@ -41,6 +45,7 @@ class AttachmentManager
         $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
         $this->attachmentTypeMapping = Config::get('attachment-library.attachment_mime_type_mapping', []);
         $this->allowedCharacters = Config::get('attachment-library.allowed_characters', '/[^\\pL\\pN_\.\- ]+/u');
+        $this->metadataRetrievers = Config::get('attachment-library.metadata_retrievers', []);
 
         $this->ensureCompatibleClasses();
     }
@@ -339,5 +344,27 @@ class AttachmentManager
         }
 
         return null;
+    }
+
+    /**
+     * @throws IncompatibleClassMappingException if metadata retriever does not extend MetadataAdapter.
+     */
+    public function getMetadata(Attachment $file): FileMetadata|false
+    {
+        foreach ($this->metadataRetrievers as $metadataRetriever => $mimeTypes) {
+            $matchesMime = array_filter($mimeTypes, fn ($mimeType) => fnmatch($mimeType, $file->mime_type));
+
+            if (empty($matchesMime)) {
+                continue;
+            }
+
+            if (! is_a($metadataRetriever, MetadataAdapter::class, true)) {
+                throw new IncompatibleClassMappingException($metadataRetriever, MetadataAdapter::class);
+            }
+
+            return (new $metadataRetriever)->getMetadata($file->absolute_path);
+        }
+
+        return false;
     }
 }

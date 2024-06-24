@@ -2,11 +2,14 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
+use Illuminate\Support\Facades\Config;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\View\Components\Image;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
@@ -33,15 +36,15 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
      */
     public function bootingPackage()
     {
+        // Bind AttachmentManager to 'attachment.manager'.
         $attachmentManagerClass = config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class);
 
         if (! is_a($attachmentManagerClass, AttachmentManager::class, true)) {
             throw new IncompatibleClassMappingException($attachmentManagerClass, AttachmentManager::class);
         }
 
-        app()->bind(
-            'attachment.manager',
-            config('attachment-library.class_mapping.attachment_manager', AttachmentManager::class)
-        );
+        app()->bind('attachment.manager', $attachmentManagerClass);
+
+        Config::get('attachment-library.class_mapping.attachment', Attachment::class)::observe(AttachmentObserver::class);
     }
 }

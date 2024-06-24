@@ -1,12 +1,13 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test;
+namespace VanOns\LaravelAttachmentLibrary\Test\DataTransferObjects;
 
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Exceptions\ClassDoesNotExistException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
+use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
 class FilenameTest extends TestCase
 {

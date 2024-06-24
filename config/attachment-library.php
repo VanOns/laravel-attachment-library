@@ -9,6 +9,15 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
+     * Map file metadata retrievers to array of MIME-types.
+     *
+     * Use '*' for wildcard.
+     */
+    'metadata_retrievers' => [
+        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd::class => ['image/*'],
+    ],
+
+    /**
      * Regular expression for defining allowed characters for file and directory names.
      */
     'allowed_characters' => '/[^\\pL\\pN_\.\- ()\x{AD}]+/u',
@@ -23,7 +32,7 @@ return [
     ],
 
     /**
-     * Map AttachmentType to MIME-types.
+     * Map AttachmentType to array of MIME-types.
      */
     'attachment_mime_type_mapping' => [
         \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => [
