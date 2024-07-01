@@ -30,17 +30,17 @@ class FilenameTest extends TestCase
     public function testAssertCorrectFilename(string $name, string $expectedName, string $expectedExtension)
     {
         Config::set('attachment-library.file_namers', [ReplaceControlCharacters::class => [
-                'search' => [
-                    "/\u{AD}/u",
-                    "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u", // Whitespace characters
-                    "/\p{C}/u", // To prevent corrupted path exception in WhiteSpaceNormalizer
-                ],
-                'replace' => [
-                    '-',
-                    ' ',
-                    '',
-                ],
+            'search' => [
+                "/\u{AD}/u",
+                "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u",
+                "/\p{C}/u",
             ],
+            'replace' => [
+                '-',
+                ' ',
+                '',
+            ],
+        ],
         ]);
 
         $filename = new Filename($name);

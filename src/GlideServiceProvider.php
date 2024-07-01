@@ -7,12 +7,11 @@ use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
-use VanOns\LaravelAttachmentLibrary\Glide\SizeParser;
 
 class GlideServiceProvider extends ServiceProvider
 {
     /**
-     * Register services.
+     * Register Glide server and resizer.
      */
     public function register(): void
     {

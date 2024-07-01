@@ -16,7 +16,7 @@ use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
 class ResizerTest extends TestCase
 {
-    use WithFaker, RefreshDatabase;
+    use RefreshDatabase, WithFaker;
 
     private $attachment;
 
@@ -103,7 +103,7 @@ class ResizerTest extends TestCase
 
         $this->be(new User());
 
-        $this->attachment = \Mockery::mock(Attachment::class, function(MockInterface $mock) {
+        $this->attachment = \Mockery::mock(Attachment::class, function (MockInterface $mock) {
             $mock->shouldReceive('getAttribute')->with('full_path')->andReturn('test.png');
         });
     }
