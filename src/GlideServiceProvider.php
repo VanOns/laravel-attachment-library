@@ -29,10 +29,6 @@ class GlideServiceProvider extends ServiceProvider
             ]);
         });
 
-        $this->app->bind('attachment.size.parser', function () {
-            return new SizeParser(config('glide.breakpoints'));
-        });
-
         app()->bind('attachment.resizer', function () {
             return new Resizer(
                 config('glide.sizes')
