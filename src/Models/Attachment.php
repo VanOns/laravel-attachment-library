@@ -30,6 +30,7 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $name
  * @property string $path
  * @property string $url
+ * @property string $title
  *
  * @mixin AttachmentQueryBuilder
  */

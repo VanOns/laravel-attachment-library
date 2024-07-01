@@ -7,10 +7,12 @@
 ])
 
 @php
+    use VanOns\LaravelAttachmentLibrary\Facades\Resizer;
+
     /**
     * @var string $path
     * @var string $fit
-    * @var array $sizes
+    * @var string $size
     * @var array $breakpoints
     * @var string|int $aspectRatio
     * @var array $formats
@@ -31,7 +33,7 @@
                     $nextBreakpoint = $keys->get($index + 1) ?? $keys->get($index);
                     $media = "(min-width: {$breakpoints[$breakpoint]}px)";
                     $width = $breakpoints[$nextBreakpoint];
-                    $data = \VanOns\LaravelAttachmentLibrary\Facades\Resizer::src($src)->width($width)->size($sizes[$breakpoint])->aspectRatio($aspectRatio)->format($format)->resize();
+                    $data = Resizer::src($src)->width($width)->size($size)->aspectRatio($aspectRatio)->format($format)->resize();
                 @endphp
 
                 <source
@@ -43,7 +45,7 @@
                 >
             @endforeach
 
-            @php($data = \VanOns\LaravelAttachmentLibrary\Facades\Resizer::src($src)->width($breakpoints[$keys->first()])->size($sizes[$keys->first()])->aspectRatio($aspectRatio)->format($format)->resize())
+            @php($data = Resizer::src($src)->width($breakpoints[$keys->first()])->size($size)->aspectRatio($aspectRatio)->format($format)->resize())
             <source
                 srcset="{{ $data['url'] }}"
                 width="{{ $data['width'] }}"
@@ -52,7 +54,7 @@
             >
         @endforeach
 
-        @php($data = \VanOns\LaravelAttachmentLibrary\Facades\Resizer::src($src)->width(end($breakpoints))->size($sizes['default'])->aspectRatio($aspectRatio)->resize())
+        @php($data = Resizer::src($src)->width(end($breakpoints))->size($size)->aspectRatio($aspectRatio)->resize())
         <img
             src="{{ $data['url'] }}"
             width="{{ $data['width'] }}"

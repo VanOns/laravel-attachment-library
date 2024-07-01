@@ -3,14 +3,13 @@
 namespace VanOns\LaravelAttachmentLibrary\View\Components;
 
 use Illuminate\View\Component;
-use VanOns\LaravelAttachmentLibrary\Facades\SizeParser;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class Image extends Component
 {
     public null|string|int|Attachment $src;
 
-    public array $sizes;
+    public string $size;
 
     public string|float|null $aspectRatio;
 
@@ -25,10 +24,10 @@ class Image extends Component
      *
      * @return void
      */
-    public function __construct(null|string|int|Attachment $src = null, string $sizes = 'full', string|float|null $aspectRatio = null, string $class = '')
+    public function __construct(null|string|int|Attachment $src = null, string $size = 'full', string|float|null $aspectRatio = null, string $class = '')
     {
         $this->src = $src;
-        $this->sizes = SizeParser::parse($sizes);
+        $this->size = $size;
         $this->aspectRatio = $aspectRatio;
         $this->breakpoints = config('glide.breakpoints');
         $this->formats = config('glide.formats');

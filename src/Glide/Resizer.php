@@ -115,10 +115,10 @@ class Resizer
 
     public function getImageSize(): ?array
     {
-        $file = public_path($this->path);
+        $file = AttachmentManager::file($this->path);
 
-        if (is_file($file) && Str::startsWith(mime_content_type($file), 'image/')) {
-            [$width, $height] = getimagesize($file);
+        if ($file && Str::startsWith($file->mime_type, 'image/')) {
+            [$width, $height] = getimagesize($file->absolute_path);
 
             return [$width, $height];
         }
