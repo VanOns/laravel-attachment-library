@@ -9,13 +9,6 @@ use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
  * Generates signed URLs to GlideController based on images.
- *
- */
-
-/**
- * Class Resizer
- *
- * This class handles the resizing of images
  */
 class Resizer
 {
