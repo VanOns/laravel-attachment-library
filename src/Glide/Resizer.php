@@ -7,6 +7,16 @@ use Illuminate\Support\Str;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
+/**
+ * Generates signed URLs to GlideController based on images.
+ *
+ */
+
+/**
+ * Class Resizer
+ *
+ * This class handles the resizing of images
+ */
 class Resizer
 {
     public ?string $path = null;
@@ -32,6 +42,9 @@ class Resizer
         return $this;
     }
 
+    /**
+     * Manually set a path to the image.
+     */
     public function path(?string $path): static
     {
         $this->path = $path;
@@ -53,54 +66,64 @@ class Resizer
         return $this;
     }
 
+    /**
+     * Calculate the width of the image based on size/aspect ratio or height.
+     */
     public function calculateWidth(): ?float
     {
+        // Return width based on size ratio.
         if ($this->width) {
             return round($this->width * $this->getSizeRatio());
         }
 
+        // Return width based on height and aspect ratio.
         if ($this->height && $this->aspectRatio) {
             return round($this->calculateHeight() * $this->aspectRatio);
         }
 
+        // Return width based on image dimensions.
         if ($this->height) {
             [$width, $height] = $this->getImageSize();
 
-            // early return, as we can NOT divide by zero
-            if (empty($height)) {
-                return 0;
-            }
-
-            return round($this->calculateHeight() / $height * $width);
+            return ! empty($height)
+                ? round($this->calculateHeight() / $height * $width)
+                : 0;
         }
 
         return null;
     }
 
+    /**
+     * Calculate the height of the image based on size/aspect ratio or width.
+     */
     public function calculateHeight(): ?float
     {
+        // Return width based on size ratio.
         if ($this->height) {
             return round($this->height * $this->getSizeRatio());
         }
 
+        // Return width based on height and aspect ratio.
         if ($this->width && $this->aspectRatio) {
             return round(($this->calculateWidth() / $this->aspectRatio));
         }
 
+        // Return height based on image dimensions.
         if ($this->width) {
             [$width, $height] = $this->getImageSize();
 
-            // early return, as we can NOT divide by zero
-            if (empty($width)) {
-                return 0;
-            }
-
-            return round($this->calculateWidth() / $width * $height);
+            return ! empty($width)
+                ? round($this->calculateWidth() / $width * $height)
+                : 0;
         }
 
         return null;
     }
 
+
+    /**
+     * Set the desired size ratio.
+     */
     public function size(string $size): static
     {
         $this->size = $size;
@@ -108,11 +131,17 @@ class Resizer
         return $this;
     }
 
+    /**
+     * Get the current size ratio.
+     */
     public function getSizeRatio(): float
     {
         return $this->sizes[$this->size] ?? 1;
     }
 
+    /**
+     * Get the dimensions of the source image.
+     */
     public function getImageSize(): ?array
     {
         $file = AttachmentManager::file($this->path);
@@ -126,6 +155,12 @@ class Resizer
         return null;
     }
 
+
+    /**
+     * Set the aspect ratio for the image.
+     *
+     * @param string|float|null $aspectRatio Aspect ratio as a float or a string in the format 'width/height'.
+     */
     public function aspectRatio(string|float|null $aspectRatio): static
     {
         if (is_string($aspectRatio)) {
@@ -138,6 +173,9 @@ class Resizer
         return $this;
     }
 
+    /**
+     * Set the desired format (e.g., 'jpg', 'webp') for the image.
+     */
     public function format(string $format): static
     {
         $this->format = $format;
@@ -146,7 +184,9 @@ class Resizer
     }
 
     /**
-     * @throws \Exception
+     * Get the path to the image file based on the source.
+     *
+     * @throws \Exception If the path cannot be determined.
      */
     protected function getPath(string|int|Attachment $src): ?string
     {
@@ -165,7 +205,7 @@ class Resizer
     }
 
     /**
-     * @throws \Exception
+     * @throws \Exception If the path cannot be determined.
      */
     protected function getPathFromSrcPath(string $src): ?string
     {
@@ -183,6 +223,9 @@ class Resizer
         return sha1($this->path.$this->width.$this->height.$this->format.$this->size.$this->aspectRatio);
     }
 
+    /**
+     * Resize the image and return an array with the signed URL, width, and height of the image.
+     */
     public function resize(): array
     {
         $width = $this->calculateWidth();
