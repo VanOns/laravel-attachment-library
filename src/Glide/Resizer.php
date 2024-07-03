@@ -113,7 +113,6 @@ class Resizer
         return null;
     }
 
-
     /**
      * Set the desired size ratio.
      */
@@ -148,11 +147,10 @@ class Resizer
         return null;
     }
 
-
     /**
      * Set the aspect ratio for the image.
      *
-     * @param string|float|null $aspectRatio Aspect ratio as a float or a string in the format 'width/height'.
+     * @param  string|float|null  $aspectRatio  Aspect ratio as a float or a string in the format 'width/height'.
      */
     public function aspectRatio(string|float|null $aspectRatio): static
     {
@@ -194,21 +192,7 @@ class Resizer
             return $src->full_path;
         }
 
-        return $this->getPathFromSrcPath($src);
-    }
-
-    /**
-     * @throws \Exception If the path cannot be determined.
-     */
-    protected function getPathFromSrcPath(string $src): ?string
-    {
-        $attachment = AttachmentManager::file($src);
-
-        if ($attachment === null) {
-            throw new \Exception('Could not generate a path from the given src: '.$src);
-        }
-
-        return $attachment->full_path;
+        return $src;
     }
 
     public function cacheKey(): string

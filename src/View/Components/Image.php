@@ -16,6 +16,7 @@ class Image extends Component
     public array $breakpoints;
 
     public array $formats;
+
     public ?Attachment $attachment;
 
     public function __construct(
