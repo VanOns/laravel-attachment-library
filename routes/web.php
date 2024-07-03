@@ -2,8 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use VanOns\LaravelAttachmentLibrary\Http\Controllers\AttachmentController;
+use VanOns\LaravelAttachmentLibrary\Http\Controllers\GlideController;
 
 Route::get('files/{attachment}', AttachmentController::class)
     ->where('attachment', '.*')
     ->middleware(['web'])
     ->name('attachment');
+
+Route::get('img/{path}', GlideController::class)
+    ->where('path', '.*')
+    ->name('glide');

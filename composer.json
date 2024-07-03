@@ -22,6 +22,7 @@
         }
     ],
     "require": {
+        "league/glide-symfony": "^2.0",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
@@ -49,7 +50,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider"
+                "VanOns\\LaravelAttachmentLibrary\\LaravelAttachmentLibraryServiceProvider",
+                "VanOns\\LaravelAttachmentLibrary\\GlideServiceProvider"
             ]
         }
     },

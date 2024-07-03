@@ -1,0 +1,37 @@
+<?php
+
+namespace VanOns\LaravelAttachmentLibrary;
+
+use Illuminate\Support\ServiceProvider;
+use League\Glide\Responses\SymfonyResponseFactory;
+use League\Glide\Server;
+use League\Glide\ServerFactory;
+use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
+
+class GlideServiceProvider extends ServiceProvider
+{
+    /**
+     * Register Glide server and resizer.
+     */
+    public function register(): void
+    {
+        app()->bind(Server::class, function () {
+            return ServerFactory::create([
+                'driver' => config('glide.driver'),
+                'source' => config('glide.source'),
+                'cache' => config('glide.cache'),
+                'defaults' => config('glide.defaults'),
+                'presets' => config('glide.presets'),
+                'max_image_size' => config('glide.max_image_size'),
+                'response' => new SymfonyResponseFactory(),
+                'base_url' => '/img/',
+            ]);
+        });
+
+        app()->bind('attachment.resizer', function () {
+            return new Resizer(
+                config('glide.sizes')
+            );
+        });
+    }
+}

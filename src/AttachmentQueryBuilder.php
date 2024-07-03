@@ -37,7 +37,8 @@ class AttachmentQueryBuilder extends Builder
      */
     public function whereFilename(Filename $filename): AttachmentQueryBuilder
     {
-        return $this->where('name', '=', $filename->name)
+        return $this->where('path', '=', $filename->path)
+            ->where('name', '=', $filename->name)
             ->where('extension', '=', $filename->extension);
     }
 }

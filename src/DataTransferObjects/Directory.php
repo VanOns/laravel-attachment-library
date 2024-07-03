@@ -20,6 +20,8 @@ readonly class Directory
         $path = explode('/', $directoryPath);
 
         $this->name = array_pop($path);
-        $this->path = implode('/', $path);
+
+        $path = implode('/', $path);
+        $this->path = $path !== '' ? $path : null;
     }
 }

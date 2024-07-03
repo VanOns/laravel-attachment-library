@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Exceptions\ClassDoesNotExistException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
+use VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters;
 use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
 class FilenameTest extends TestCase
@@ -28,6 +29,20 @@ class FilenameTest extends TestCase
      */
     public function testAssertCorrectFilename(string $name, string $expectedName, string $expectedExtension)
     {
+        Config::set('attachment-library.file_namers', [ReplaceControlCharacters::class => [
+            'search' => [
+                "/\u{AD}/u",
+                "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u",
+                "/\p{C}/u",
+            ],
+            'replace' => [
+                '-',
+                ' ',
+                '',
+            ],
+        ],
+        ]);
+
         $filename = new Filename($name);
 
         $this->assertEquals($expectedName, $filename->name);

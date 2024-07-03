@@ -39,15 +39,17 @@ class GdTest extends TestCase
     public function testAssertCache()
     {
         $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
+        $cacheKey = implode('-', ['image-adapter', hash('sha256', $file->path())]);
+
         $gd = new Gd();
 
-        $this->assertEmpty(Cache::get("imageadapter-{$file->path()}"));
+        $this->assertEmpty(Cache::get($cacheKey));
 
         $gd->getMetadata($file->path());
 
         $this->assertEquals(
             new FileMetadata('10', '10', bits: 8, channels: 3),
-            Cache::get("imageadapter-{$file->path()}")
+            Cache::get($cacheKey)
         );
     }
 }
