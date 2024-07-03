@@ -8,6 +8,7 @@ use Illuminate\Routing\Middleware\ValidateSignature;
 use League\Glide\Server;
 use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class GlideController implements HasMiddleware
 {
@@ -16,9 +17,9 @@ class GlideController implements HasMiddleware
      *
      * @see Resizer for all available Glide parameters.
      */
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, Attachment $attachment): Response
     {
-        return app(Server::class)->getImageResponse($request->path(), $request->all());
+        return app(Server::class)->getImageResponse($attachment->full_path, $request->all());
     }
 
     /**

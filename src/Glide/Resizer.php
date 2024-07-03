@@ -218,7 +218,7 @@ class Resizer
         return [
             'width' => $width,
             'height' => $height,
-            'url' => URL::signedRoute('glide', ['path' => $this->path, ...$parameters]),
+            'url' => URL::signedRoute('glide', ['attachment' => $this->path, ...$parameters]),
         ];
     }
 }
