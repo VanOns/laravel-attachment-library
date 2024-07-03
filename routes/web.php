@@ -9,6 +9,7 @@ Route::get('files/{attachment}', AttachmentController::class)
     ->middleware(['web'])
     ->name('attachment');
 
-Route::get('img/{path}', GlideController::class)
-    ->where('path', '.*')
+Route::get('img/{attachment}', GlideController::class)
+    ->where('attachment', '.*')
+    ->middleware(['web'])
     ->name('glide');
