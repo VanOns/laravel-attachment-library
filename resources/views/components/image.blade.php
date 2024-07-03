@@ -8,6 +8,7 @@
 
 @php
     use VanOns\LaravelAttachmentLibrary\Facades\Resizer;
+    use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
     /**
     * @var string $path
@@ -18,9 +19,11 @@
     * @var array $formats
     * @var string $class
     * @var string $imageClass
-    * @var string $lat
+    * @var string $alt
+    * @var Attachment $attachment
     */
 
+    $alt = $alt ?: $attachment?->alt ?: '';
     $keys = collect($breakpoints)->keys();
 @endphp
 
