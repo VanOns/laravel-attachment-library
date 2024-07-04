@@ -47,9 +47,6 @@ The versatility of this package makes it suitable for a wide range of scenarios,
 
 By focusing on the essentials and providing flexibility for custom solutions, this package is the ideal choice for developers looking to enhance their applications with efficient and user-friendly file management capabilities.
 
-### Technical details
-This package is built on the [Laravel's Flysystem](https://laravel.com/docs/11.x/filesystem) integration.
-
 ## Requirements
 Before installing and using the Laravel Attachment Library, please ensure your environment meets the requirements below.
 
