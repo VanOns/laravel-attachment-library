@@ -1,4 +1,7 @@
-It's possible to customize how file names are processed. By default this package offers the `ReplaceControlCharacters` file namer which accepts a search array and replace array. The default configration is as follows:
+# File namers
+
+It's possible to customize how filenames are processed. By default this package offers the `ReplaceControlCharacters` file namer which accepts a search array and replace array. The default configuration is as follows:
+
 ```php
 // config/attachment-library.php
 <?php
@@ -22,13 +25,14 @@ return [
 ];
 ```
 
-The configuration above will replace whitespace characters by regular spaces, soft-hyphens by dashes and strip any action character. The configuration can be tailored to your needs, however the configuration also allows custom file namers. To create a File Namer make sure to extend the `FileNamer` class as follows:
+The configuration above will replace whitespace characters by regular spaces, soft-hyphens by dashes and strip any action character. The configuration can be tailored to your needs, however the configuration also allows custom file namers. To create a file namer make sure to extend the `FileNamer` class as follows:
+
 ```php
 <?php
 
 namespace App\FileNamers;
 
-class ReplaceControlCharacters extends FileNamer
+class YourFileNamer extends FileNamer
 {
     public function execute(string $value): string
     {
@@ -38,4 +42,4 @@ class ReplaceControlCharacters extends FileNamer
 }
 ```
 
-The `execute` method will receive the file name without extension as a string and must return a string.
+The `execute` method will receive the filename without extension as a string and must return a string.

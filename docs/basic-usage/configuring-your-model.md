@@ -1,6 +1,9 @@
+# Configuring your model
+
 Accepting attachments for your object requires the use of the trait: `HasAttachments`.
 
 Your model should look like:
+
 ```php
 namespace App\Models;
 
@@ -16,28 +19,30 @@ class ModelName extends Model
 ```
 
 #### Attach attachments
+
 You can attach existing attachments to your object in the following way:
 
 ```php
 // Retrieve attachment.
-$attachment = Attachment::find($id);
+$attachment = Attachment::find($attachmentId);
 
 // Retrieve your model.
-$myModel = ModelName::find($id);
+$myModel = ModelName::find($modelId);
 
 // Link attachment to your model.
 $myModel->attachments()->attach($attachment);
 ```
 
 #### Detach attachments
-You can detach existing attachments to your object in the following way:
+
+You can detach existing attachments from your object in the following way:
 
 ```php
 // Retrieve attachment.
-$attachment = Attachment::find($id);
+$attachment = Attachment::find($attachmentId);
 
 // Retrieve your model.
-$myModel = ModelName::find($id);
+$myModel = ModelName::find($modelId);
 
 // Detach attachment from your model.
 $myModel->attachments()->detach($attachment);
