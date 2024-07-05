@@ -1,6 +1,6 @@
 # Extending the package
 
-The package provides the ability to extend several main classes with new or customized functionalities. To do that, create a new class that extends the existing class::
+The package provides the ability to extend several main classes with new or customized functionalities. To do that, create a new class that extends the existing class:
 
 ```php
 namespace App\Models;
