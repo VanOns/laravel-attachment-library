@@ -1,3 +1,5 @@
+# Installation
+
 To get started with the Laravel Attachment Library, you will need to follow a few simple steps. This guide will walk you through the process of installing the package and setting it up in your Laravel application.
 
 ### Composer
