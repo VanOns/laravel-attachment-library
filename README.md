@@ -10,20 +10,47 @@ A Laravel library for attaching files to Eloquent models.
 
 ### Installation
 
-```bash
-# Composer
-$ composer require van-ons/laravel-attachment-library
+The Filament Attachment Library can be installed using composer by running the following command:
 
-# Install package
+```bash
+$ composer require van-ons/laravel-attachment-library
+```
+
+After downloading the dependency, run the following command to install all the migrations and assets:
+
+```bash
 $ php artisan attachment-library:install 
 ```
 
 ### Usage
 
+To enable file attachments in your eloquent models, add the `HasAttachments` trait into your model class.
+
 ```php
-// How do you use this package?
-// Keep it brief, but give enough information to get started.
-// Extensive documentation can be provided in the docs folder.
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use VanOns\LaravelAttachmentLibrary\Concerns\HasAttachments;
+
+class ModelName extends Model
+{
+    use HasAttachments;
+    
+    // ...
+}
+```
+
+After that you're able to link attachments to your model like:
+
+```php
+// Retrieve attachment.
+$attachment = Attachment::find($attachmentId);
+
+// Retrieve your model.
+$myModel = ModelName::find($modelId);
+
+// Link attachment to your model.
+$myModel->attachments()->attach($attachment);
 ```
 
 ## Documentation
