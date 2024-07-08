@@ -2,14 +2,14 @@
 
 This package includes a Blade component for loading responsive images that scale depending on breakpoints. This ensures optimal performance by delivering appropriately sized images for different screen sizes.
 
-#### Usage
+## Usage
 To use the responsive image component, simply include it in your Blade template as follows:
 
 ```php
 <x-laravel-attachment-library-image :src="$image" />
 ```
 
-#### Parameters
+## Parameters
 
 `src`: The source of the image. This can be a file path in string, an Attachment object, or a numeric ID.
 
@@ -19,7 +19,7 @@ To use the responsive image component, simply include it in your Blade template 
 
 `class`: Additional CSS-classes.
 
-#### Manually resize image
+## Manually resize image
 
 The Resizer class is responsible for resizing images. It is also possible to call this class directly from other places in the application.
 

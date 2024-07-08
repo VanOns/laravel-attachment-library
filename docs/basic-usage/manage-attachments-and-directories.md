@@ -2,7 +2,7 @@
 
 The AttachmentManager facade is the main part of this package. This class is responsible for uploading, deleting, modifying and moving files while making sure that the database representation stays in sync.
 
-#### Attachments
+## Attachments
 
 The AttachmentManager offers many ways to manage attachments.
 
@@ -30,7 +30,7 @@ Delete an attachment.
 $attachmentModel = AttachmentManager::delete($attachment);
 ```
 
-#### Directories
+## Directories
 
 The package also offers ways to manage directories.
 

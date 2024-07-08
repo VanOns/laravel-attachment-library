@@ -10,7 +10,7 @@ A Laravel library for attaching files to Eloquent models.
 
 ### Installation
 
-The Filament Attachment Library can be installed using composer by running the following command:
+The Laravel Attachment Library can be installed using composer by running the following command:
 
 ```bash
 $ composer require van-ons/laravel-attachment-library

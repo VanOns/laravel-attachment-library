@@ -18,7 +18,7 @@ class ModelName extends Model
 }
 ```
 
-#### Attach attachments
+## Attach attachments
 
 You can attach existing attachments to your object in the following way:
 
@@ -33,7 +33,7 @@ $myModel = ModelName::find($modelId);
 $myModel->attachments()->attach($attachment);
 ```
 
-#### Detach attachments
+## Detach attachments
 
 You can detach existing attachments from your object in the following way:
 
