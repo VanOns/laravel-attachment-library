@@ -37,9 +37,9 @@ return [
     'attachment_mime_type_mapping' => [
         \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType::PREVIEWABLE_IMAGE => [
             'image/apng',
-            'image/apng',
             'image/avif',
             'image/jpeg',
+            'image/png',
             'image/svg',
             'image/svg+xml',
             'image/vnd.microsoft.icon',
