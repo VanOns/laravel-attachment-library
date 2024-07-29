@@ -1,6 +1,7 @@
-# Laravel Attachment Library
+# Basic Usage
 
 ## Contents
+
 1. [Configuring your model](configuring-your-model.md)
 2. [Manage attachments and directories](manage-attachments-and-directories.md)
    1. [Attachments](manage-attachments-and-directories.md#attachments)

@@ -1,8 +1,6 @@
 # Configuring your model
 
-Accepting attachments for your object requires the use of the trait: `HasAttachments`.
-
-Your model should look like:
+Accepting attachments for your model requires the use of the trait: `HasAttachments`. Your model should look like the following:
 
 ```php
 namespace App\Models;
@@ -24,7 +22,7 @@ You can attach existing attachments to your object in the following way:
 
 ```php
 // Retrieve attachment.
-$attachment = Attachment::find($attachmentId);
+$attachment = \VanOns\LaravelAttachmentLibrary\Models\Attachment::find($attachmentId);
 
 // Retrieve your model.
 $myModel = ModelName::find($modelId);
@@ -39,7 +37,7 @@ You can detach existing attachments from your object in the following way:
 
 ```php
 // Retrieve attachment.
-$attachment = Attachment::find($attachmentId);
+$attachment = \VanOns\LaravelAttachmentLibrary\Models\Attachment::find($attachmentId);
 
 // Retrieve your model.
 $myModel = ModelName::find($modelId);

@@ -1,6 +1,7 @@
 # File namers
 
-It's possible to customize how filenames are processed. By default this package offers the `ReplaceControlCharacters` file namer which accepts a search array and replace array. The default configuration is as follows:
+It's possible to customize how filenames are processed. By default, this package offers the `ReplaceControlCharacters`
+file namer which accepts a search array and replace array. The default configuration is as follows:
 
 ```php
 // config/attachment-library.php
@@ -25,12 +26,16 @@ return [
 ];
 ```
 
-The configuration above will replace whitespace characters by regular spaces, soft-hyphens by dashes and strip any action character. The configuration can be tailored to your needs, however the configuration also allows custom file namers. To create a file namer make sure to extend the `FileNamer` class as follows:
+The configuration above will replace whitespace characters with regular spaces, soft-hyphens with dashes, and strip any
+action character. The configuration can be tailored to your needs, but the configuration also allows custom file namers.
+To create a file namer, make sure to extend the `FileNamer` class as follows:
 
 ```php
 <?php
 
 namespace App\FileNamers;
+
+use VanOns\LaravelAttachmentLibrary\FileNamers\FileNamer;
 
 class YourFileNamer extends FileNamer
 {

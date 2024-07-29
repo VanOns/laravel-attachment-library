@@ -10,7 +10,7 @@ A Laravel library for attaching files to Eloquent models.
 
 ### Installation
 
-The Laravel Attachment Library can be installed using composer by running the following command:
+The Laravel Attachment Library can be installed using Composer by running the following command:
 
 ```bash
 $ composer require van-ons/laravel-attachment-library
@@ -24,7 +24,7 @@ $ php artisan attachment-library:install
 
 ### Usage
 
-To enable file attachments in your eloquent models, add the `HasAttachments` trait into your model class.
+To enable file attachments in your Eloquent models, add the `HasAttachments` trait to your model class:
 
 ```php
 namespace App\Models;
@@ -40,11 +40,11 @@ class ModelName extends Model
 }
 ```
 
-After that you're able to link attachments to your model like:
+After that you should be able to link attachments to your model as follows:
 
 ```php
 // Retrieve attachment.
-$attachment = Attachment::find($attachmentId);
+$attachment = \VanOns\LaravelAttachmentLibrary\Models\Attachment::find($attachmentId);
 
 // Retrieve your model.
 $myModel = ModelName::find($modelId);
