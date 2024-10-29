@@ -62,8 +62,7 @@ class FilenameTest extends TestCase
     {
         $this->expectException(IncompatibleClassMappingException::class);
 
-        Config::set('attachment-library.file_namers', [(new class
-        {
+        Config::set('attachment-library.file_namers', [(new class () {
         })::class => null]);
 
         new Filename('asd');

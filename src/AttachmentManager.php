@@ -362,7 +362,7 @@ class AttachmentManager
                 throw new IncompatibleClassMappingException($metadataRetriever, MetadataAdapter::class);
             }
 
-            return (new $metadataRetriever)->getMetadata($file->absolute_path);
+            return (new $metadataRetriever())->getMetadata($file->absolute_path);
         }
 
         return false;

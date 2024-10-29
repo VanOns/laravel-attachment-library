@@ -20,7 +20,8 @@ use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class AttachmentManagerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     protected static string $disk = 'test';
 
@@ -408,8 +409,7 @@ class AttachmentManagerTest extends TestCase
     public static function compatibleModelClassProvider(): array
     {
         return [
-            ['attachment-library.class_mapping.attachment', new class extends Attachment
-            {
+            ['attachment-library.class_mapping.attachment', new class () extends Attachment {
             }],
             // TODO: implement once readonly classes are supported https://github.com/mockery/mockery/issues/1317
             // ['attachment-library.class_mapping.directory', \Mockery::namedMock('ExtendedDirectory', Directory::class)]
@@ -431,8 +431,7 @@ class AttachmentManagerTest extends TestCase
     {
         self::expectException(IncompatibleClassMappingException::class);
 
-        $mock = new class
-        {
+        $mock = new class () {
         };
 
         Config::set($config, $mock::class);

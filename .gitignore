@@ -165,3 +165,5 @@ fabric.properties
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,phpstorm+all,visualstudiocode,composer,phpunit
+
+.php-cs-fixer.cache

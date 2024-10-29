@@ -51,7 +51,7 @@ readonly class Filename
         foreach (array_keys($fileNamers) as $fileNamer) {
             $this->validateFileNamer($fileNamer);
 
-            $name = (new $fileNamer)->execute($name);
+            $name = (new $fileNamer())->execute($name);
         }
 
         return $name;

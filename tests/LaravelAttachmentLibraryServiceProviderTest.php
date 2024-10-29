@@ -20,8 +20,7 @@ class LaravelAttachmentLibraryServiceProviderTest extends TestCase
     {
         self::expectNotToPerformAssertions();
 
-        $mock = new class extends AttachmentManager
-        {
+        $mock = new class () extends AttachmentManager {
         };
 
         Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
@@ -34,8 +33,7 @@ class LaravelAttachmentLibraryServiceProviderTest extends TestCase
     {
         self::expectException(IncompatibleClassMappingException::class);
 
-        $mock = new class
-        {
+        $mock = new class () {
         };
 
         Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);

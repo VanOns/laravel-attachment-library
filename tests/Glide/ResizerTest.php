@@ -16,7 +16,8 @@ use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
 class ResizerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     private $attachment;
 
