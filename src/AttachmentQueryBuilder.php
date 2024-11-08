@@ -5,12 +5,16 @@ namespace VanOns\LaravelAttachmentLibrary;
 use Illuminate\Database\Eloquent\Builder;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 
+/**
+ * @template TModelClass of \Illuminate\Database\Eloquent\Model
+ * @extends Builder<TModelClass>
+ */
 class AttachmentQueryBuilder extends Builder
 {
     /**
      * Filter files by disk.
      */
-    public function whereDisk(string $disk): AttachmentQueryBuilder
+    public function whereDisk(string $disk): static
     {
         return $this->where('disk', $disk);
     }
@@ -18,7 +22,7 @@ class AttachmentQueryBuilder extends Builder
     /**
      * Filter files by exact path.
      */
-    public function wherePath(?string $path): AttachmentQueryBuilder
+    public function wherePath(?string $path): static
     {
         return $this->where('path', $path);
     }
@@ -26,7 +30,7 @@ class AttachmentQueryBuilder extends Builder
     /**
      * Filter all files in path including in subdirectories.
      */
-    public function whereInPath(string $path): AttachmentQueryBuilder
+    public function whereInPath(string $path): static
     {
         return $this->where('path', '=', $path)
             ->orWhere('path', 'LIKE', "{$path}/%");
@@ -35,7 +39,7 @@ class AttachmentQueryBuilder extends Builder
     /**
      * Filter files by filename DTO.
      */
-    public function whereFilename(Filename $filename): AttachmentQueryBuilder
+    public function whereFilename(Filename $filename): static
     {
         return $this->where('path', '=', $filename->path)
             ->where('name', '=', $filename->name)
