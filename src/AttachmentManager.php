@@ -100,17 +100,15 @@ class AttachmentManager
      *
      * @param  string|null  $path  Use `null` for root of disk.
      */
-    public function files(?string $path): Collection
+    public function files(?string $path = null): Collection
     {
         return $this->attachmentClass::whereDisk($this->disk)->wherePath($path)->get();
     }
 
     /**
      * Return single file or null for given path.
-     *
-     * @param  string|null  $path  Use `null` for root of disk.
      */
-    public function file(?string $path): ?Attachment
+    public function file(string $path): ?Attachment
     {
         return $this->attachmentClass::whereDisk($this->disk)->whereFilename(new Filename($path))->first();
     }
@@ -123,13 +121,13 @@ class AttachmentManager
      * @throws DestinationAlreadyExistsException if conflicting file name exists in desired path.
      * @throws DisallowedCharacterException if file name contains disallowed characters.
      */
-    public function upload(UploadedFile $file, ?string $desiredPath): Attachment
+    public function upload(UploadedFile $file, ?string $desiredPath = null): Attachment
     {
         $filename = new Filename($file);
 
         $this->validateBasename($filename);
 
-        $path = "{$desiredPath}/{$filename}";
+        $path = implode('/', array_filter([$desiredPath, $filename]));
         $disk = $this->getFilesystem();
 
         if ($disk->exists($path)) {
