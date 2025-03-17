@@ -2,7 +2,7 @@
 
 return [
     'driver' => env('GLIDE_DRIVER', 'gd'),
-    'source' => storage_path('app/media'),
+    'source' => storage_path('app/public'),
     'cache' => storage_path('app/glide/cache'),
     'defaults' => [],
     'presets' => [],
