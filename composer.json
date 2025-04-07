@@ -22,7 +22,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2",
+        "php": "^8.2",
         "league/glide-symfony": "^2.0",
         "spatie/laravel-package-tools": "^1.16"
     },
