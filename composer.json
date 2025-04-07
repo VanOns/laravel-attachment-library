@@ -22,6 +22,7 @@
         }
     ],
     "require": {
+        "php": ">=8.2",
         "league/glide-symfony": "^2.0",
         "spatie/laravel-package-tools": "^1.16"
     },
@@ -32,9 +33,9 @@
         "phpunit/phpunit": "^10.1"
     },
     "scripts": {
-        "analyse": "./vendor/bin/phpstan analyse",
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=1G",
+        "format": "./vendor/bin/php-cs-fixer fix",
         "format:check": "./vendor/bin/php-cs-fixer check",
-        "format:fix": "./vendor/bin/php-cs-fixer fix",
         "test": "./vendor/bin/phpunit"
     },
     "autoload": {
