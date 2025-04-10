@@ -9,7 +9,6 @@ use League\Glide\Server;
 use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
-use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class GlideController implements HasMiddleware
 {

@@ -2,17 +2,12 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
-use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
-use League\Glide\ServerFactory;
 use VanOns\LaravelAttachmentLibrary\Console\Commands\ClearGlide;
 use VanOns\LaravelAttachmentLibrary\Console\Commands\GlideStats;
 use VanOns\LaravelAttachmentLibrary\Facades\Glide;
 use VanOns\LaravelAttachmentLibrary\Glide\GlideManager;
-use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
 
 class GlideServiceProvider extends ServiceProvider
