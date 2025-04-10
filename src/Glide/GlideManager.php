@@ -32,4 +32,45 @@ class GlideManager
             ? Storage::disk(config('glide.cache_disk'))
             : Storage::build(config('glide.cache_disk'));
     }
+
+    /**
+     * @return array{
+     *     files: int,
+     *     size: int,
+     *     readable_size: string
+     * }
+     */
+    public function cacheStats(): array
+    {
+        return [
+            'files' => $this->cacheFiles(),
+            'size' => $this->cacheSize(),
+            'readable_size' => $this->cacheSizeHumanReadable(),
+        ];
+    }
+
+    public function cacheFiles(): int
+    {
+        return count($this->cacheDisk()->allFiles());
+    }
+
+    public function cacheSize(): int
+    {
+        return collect($this->cacheDisk()->allFiles())->sum(
+            fn ($file) => $this->cacheDisk()->size($file)
+        );
+    }
+
+    public function cacheSizeHumanReadable(): string
+    {
+
+        return $this->humanReadableSize($this->cacheSize());
+    }
+
+    public function humanReadableSize(int $bytes, $decimals = 2): string
+    {
+        $size = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $factor = floor((strlen(strval($bytes)) - 1) / 3);
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . ' ' . $size[$factor];
+    }
 }

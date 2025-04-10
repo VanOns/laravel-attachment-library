@@ -9,6 +9,7 @@ use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
 use VanOns\LaravelAttachmentLibrary\Console\Commands\ClearGlide;
+use VanOns\LaravelAttachmentLibrary\Console\Commands\GlideStats;
 use VanOns\LaravelAttachmentLibrary\Facades\Glide;
 use VanOns\LaravelAttachmentLibrary\Glide\GlideManager;
 use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
@@ -41,6 +42,6 @@ class GlideServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->commands([ ClearGlide::class ]);
+        $this->commands([ ClearGlide::class, GlideStats::class ]);
     }
 }
