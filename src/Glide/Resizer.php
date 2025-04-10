@@ -208,17 +208,20 @@ class Resizer
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
-        $parameters = [
-            'w' => $width,
-            'h' => $height,
-            'fm' => $this->format,
-            'fit' => 'crop',
-        ];
+        $url = URL::signedRoute('glide', [
+            'options' => app(OptionsParser::class)->toString([
+                'w' => $width,
+                'h' => $height,
+                'fit' => 'crop',
+                'fm' => $this->format,
+            ]),
+            'path' => $this->path,
+        ]);
 
         return [
             'width' => $width,
             'height' => $height,
-            'url' => URL::signedRoute('glide', ['attachment' => $this->path, ...$parameters]),
+            'url' => $url,
         ];
     }
 }
