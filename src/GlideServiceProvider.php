@@ -3,9 +3,11 @@
 namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Support\ServiceProvider;
-use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
-use League\Glide\ServerFactory;
+use VanOns\LaravelAttachmentLibrary\Console\Commands\ClearGlide;
+use VanOns\LaravelAttachmentLibrary\Console\Commands\GlideStats;
+use VanOns\LaravelAttachmentLibrary\Facades\Glide;
+use VanOns\LaravelAttachmentLibrary\Glide\GlideManager;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
 
 class GlideServiceProvider extends ServiceProvider
@@ -15,23 +17,26 @@ class GlideServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        config([
+            'filesystems.links' => array_merge(
+                config('filesystems.links', []),
+                config('glide.links', [])
+            ),
+        ]);
+
         app()->bind(Server::class, function () {
-            return ServerFactory::create([
-                'driver' => config('glide.driver'),
-                'source' => config('glide.source'),
-                'cache' => config('glide.cache'),
-                'defaults' => config('glide.defaults'),
-                'presets' => config('glide.presets'),
-                'max_image_size' => config('glide.max_image_size'),
-                'response' => new SymfonyResponseFactory(),
-                'base_url' => '/img/',
-            ]);
+            return Glide::server();
         });
 
         app()->bind('attachment.resizer', function () {
-            return new Resizer(
-                config('glide.sizes')
-            );
+            return new Resizer(config('glide.sizes'));
         });
+
+        app()->bind('attachment.glide.manager', GlideManager::class);
+    }
+
+    public function boot(): void
+    {
+        $this->commands([ ClearGlide::class, GlideStats::class ]);
     }
 }
