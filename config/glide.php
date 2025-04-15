@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     'driver' => env('GLIDE_DRIVER', 'gd'),
     'source' => storage_path('app/public'),
     /**
@@ -54,4 +55,5 @@ return [
      * Example: With [ 'webp' , 'jpg' ] browsers will attempt to load webp before jpg.
      */
     'formats' => ['webp', 'jpg'],
+
 ];

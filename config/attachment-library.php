@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     /**
      * Default disk to use for storing attachments.
      *
@@ -92,4 +93,5 @@ return [
             ],
         ],
     ],
+
 ];

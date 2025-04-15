@@ -5,6 +5,7 @@ namespace VanOns\LaravelAttachmentLibrary\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Middleware\ValidateSignature;
+use League\Glide\Filesystem\FileNotFoundException;
 use League\Glide\Server;
 use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
@@ -19,10 +20,14 @@ class GlideController implements HasMiddleware
      */
     public function __invoke(Request $request, string $options, string $path, OptionsParser $parser): Response
     {
-        return app(Server::class)->getImageResponse(
-            $path,
-            $parser->toArray($options)
-        );
+        try {
+            return app(Server::class)->getImageResponse(
+                $path,
+                $parser->toArray($options)
+            );
+        } catch (FileNotFoundException) {
+            abort(404);
+        }
     }
 
     /**
