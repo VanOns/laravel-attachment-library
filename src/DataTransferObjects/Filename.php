@@ -29,7 +29,7 @@ readonly class Filename
 
         $pathInfo = pathinfo($file);
         $this->name = $this->formatFilename($pathInfo['filename']);
-        $this->extension = $pathInfo['extension'] === '' ? null : $pathInfo['extension'];
+        $this->extension = empty($pathInfo['extension']) ? null : $pathInfo['extension'];
         $this->path = $pathInfo['dirname'] === '.' ? null : $pathInfo['dirname'];
     }
 
