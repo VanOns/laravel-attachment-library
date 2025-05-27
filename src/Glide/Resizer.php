@@ -27,7 +27,9 @@ class Resizer
 
     public Fit $fit = Fit::CROP;
 
-    public function __construct(public array $sizes) {}
+    public function __construct(public array $sizes)
+    {
+    }
 
     public function src(string|int|Attachment $src): static
     {
