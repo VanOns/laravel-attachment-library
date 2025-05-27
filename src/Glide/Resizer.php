@@ -4,6 +4,7 @@ namespace VanOns\LaravelAttachmentLibrary\Glide;
 
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
@@ -23,6 +24,8 @@ class Resizer
     public ?string $size = 'full';
 
     public ?float $aspectRatio = null;
+
+    public Fit $fit = Fit::CROP;
 
     public function __construct(public array $sizes)
     {
@@ -55,6 +58,13 @@ class Resizer
     public function height(int $height): static
     {
         $this->height = $height;
+
+        return $this;
+    }
+
+    public function fit(Fit $fit): static
+    {
+        $this->fit = $fit;
 
         return $this;
     }
@@ -212,7 +222,7 @@ class Resizer
             'options' => app(OptionsParser::class)->toString([
                 'w' => $width,
                 'h' => $height,
-                'fit' => 'crop',
+                'fit' => $this->fit->value,
                 'fm' => $this->format,
             ]),
             'path' => $this->path,
