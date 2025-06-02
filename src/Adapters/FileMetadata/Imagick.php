@@ -4,6 +4,7 @@ namespace VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata;
 
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
 use VanOns\LaravelAttachmentLibrary\Exceptions\ClassDoesNotExistException;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
  *  An adapter class for the PHP-Imagick extension.
@@ -14,19 +15,22 @@ class Imagick extends MetadataAdapter
      * @throws ClassDoesNotExistException if Imagick is not installed.
      * @throws \ImagickException
      */
-    protected function retrieve(string $path): FileMetadata|bool
+    protected function retrieve(Attachment $file): FileMetadata|bool
     {
         if (! class_exists(\Imagick::class) || ! extension_loaded('imagick')) {
             throw new ClassDoesNotExistException(\Imagick::class);
         }
 
-        try {
-            $image = new \Imagick($path);
-        } catch (\ImagickException $e) {
+        if (!$file->isImage()) {
             return false;
         }
 
-        $imageInfo = $image->identifyImage();
+        try {
+            $image = new \Imagick($file->absolute_path);
+            $imageInfo = $image->identifyImage();
+        } catch (\ImagickException $e) {
+            return false;
+        }
 
         return new FileMetadata(
             width: $imageInfo['geometry']['width'],

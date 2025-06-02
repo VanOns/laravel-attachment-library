@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
 use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
+use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 
 /**
@@ -72,6 +73,42 @@ class Attachment extends Model
     public function isType(string $type): bool
     {
         return AttachmentManager::isType($this, $type);
+    }
+
+    public function isImage(): bool
+    {
+        return $this->isType(AttachmentType::PREVIEWABLE_IMAGE);
+    }
+
+    public function isVideo(): bool
+    {
+        return $this->isType(AttachmentType::PREVIEWABLE_VIDEO);
+    }
+
+    public function isAudio(): bool
+    {
+        return $this->isType(AttachmentType::PREVIEWABLE_AUDIO);
+    }
+
+    public function isDocument(): bool
+    {
+        return $this->isType(AttachmentType::PREVIEWABLE_DOCUMENT);
+    }
+
+    /**
+     * Return contents of attachment.
+     */
+    public function getContents(): ?string
+    {
+        return AttachmentManager::getContents($this);
+    }
+
+    /**
+     * Check if attachment is on a remote disk.
+     */
+    public function isRemote(): bool
+    {
+        return AttachmentManager::isRemote($this);
     }
 
     /**
