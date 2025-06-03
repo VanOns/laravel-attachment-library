@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\MetadataAdapter;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Directory;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
@@ -96,14 +97,6 @@ class AttachmentManager
     }
 
     /**
-     * Return single file or null for given ID.
-     */
-    public function find(string|int $id): ?Attachment
-    {
-        return $this->attachmentClass::find($id);
-    }
-
-    /**
      * Return files under a given path.
      *
      * @param  string|null  $path  Use `null` for root of disk.
@@ -119,6 +112,25 @@ class AttachmentManager
     public function file(string $path): ?Attachment
     {
         return $this->attachmentClass::whereDisk($this->disk)->whereFilename(new Filename($path))->first();
+    }
+
+    /**
+     * Return single file or null for given ID.
+     */
+    public function find(string|int $id): ?Attachment
+    {
+        return $this->attachmentClass::whereDisk($this->disk)->find($id);
+    }
+
+    /**
+     * Return single file or null for given URL.
+     */
+    public function findByUrl(string $url): ?Attachment
+    {
+        $baseUrl = Str::chopEnd(route('attachment', ['attachment' => 'PLACEHOLDER']), 'PLACEHOLDER');
+        $path = Str::chopStart($url, $baseUrl);
+
+        return $this->file($path);
     }
 
     /**
