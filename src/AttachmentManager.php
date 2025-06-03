@@ -96,6 +96,14 @@ class AttachmentManager
     }
 
     /**
+     * Return single file or null for given ID.
+     */
+    public function find(string|int $id): ?Attachment
+    {
+        return $this->attachmentClass::find($id);
+    }
+
+    /**
      * Return files under a given path.
      *
      * @param  string|null  $path  Use `null` for root of disk.
