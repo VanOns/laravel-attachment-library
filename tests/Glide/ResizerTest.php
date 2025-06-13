@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
+use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
@@ -25,6 +26,7 @@ class ResizerTest extends TestCase
     {
         $resizer = new Resizer([]);
         $resizer->src($this->attachment)
+            ->fit(Fit::CROP)
             ->width(50)
             ->height(150);
 
@@ -32,13 +34,14 @@ class ResizerTest extends TestCase
 
         $this->assertSame(50.0, $resizer['width']);
         $this->assertSame(150.0, $resizer['height']);
-        $this->assertStringStartsWith('http://localhost/img/test.png', $resizer['url']);
+        $this->assertStringStartsWith('http://localhost/img/fit=crop,fm=jpg,h=150,w=50/test.png', $resizer['url']);
     }
 
     public function testAssertCorrectWidthByAspectRatio()
     {
         $resizer = new Resizer([]);
         $resizer->src($this->attachment)
+            ->fit(Fit::CROP)
             ->height(150)
             ->aspectRatio(.33);
 
@@ -46,13 +49,14 @@ class ResizerTest extends TestCase
 
         $this->assertSame(50.0, $resizer['width']);
         $this->assertSame(150.0, $resizer['height']);
-        $this->assertStringStartsWith('http://localhost/img/test.png', $resizer['url']);
+        $this->assertStringStartsWith('http://localhost/img/fit=crop,fm=jpg,h=150,w=50/test.png', $resizer['url']);
     }
 
     public function testAssertCorrectHeightAspectRatio()
     {
         $resizer = new Resizer([]);
         $resizer->src($this->attachment)
+            ->fit(Fit::CROP)
             ->width(150)
             ->aspectRatio(.25);
 
@@ -60,19 +64,20 @@ class ResizerTest extends TestCase
 
         $this->assertSame(150.0, $resizer['width']);
         $this->assertSame(600.0, $resizer['height']);
-        $this->assertStringStartsWith('http://localhost/img/test.png', $resizer['url']);
+        $this->assertStringStartsWith('http://localhost/img/fit=crop,fm=jpg,h=600,w=150/test.png', $resizer['url']);
     }
 
     public function testAssertWithoutSizing()
     {
         $resizer = new Resizer([]);
-        $resizer->src($this->attachment);
+        $resizer->src($this->attachment)
+            ->fit(Fit::CROP);
 
         $resizer = $resizer->resize();
 
         $this->assertNull($resizer['width']);
         $this->assertNull($resizer['height']);
-        $this->assertStringStartsWith('http://localhost/img/test.png', $resizer['url']);
+        $this->assertStringStartsWith('http://localhost/img/fit=crop,fm=jpg,h=,w=/test.png', $resizer['url']);
     }
 
     public function testAssertWithoutAspectRatio()

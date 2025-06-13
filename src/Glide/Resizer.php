@@ -3,7 +3,6 @@
 namespace VanOns\LaravelAttachmentLibrary\Glide;
 
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
@@ -148,13 +147,13 @@ class Resizer
     {
         $file = AttachmentManager::file($this->path);
 
-        if ($file && Str::startsWith($file->mime_type, 'image/')) {
-            [$width, $height] = getimagesize($file->absolute_path);
-
-            return [$width, $height];
+        if (!$file || !$file->isImage()) {
+            return null;
         }
 
-        return null;
+        [$width, $height] = AttachmentManager::getImageSizes($file);
+
+        return [$width, $height];
     }
 
     /**

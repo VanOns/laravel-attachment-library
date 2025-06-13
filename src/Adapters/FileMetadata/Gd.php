@@ -3,20 +3,17 @@
 namespace VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata;
 
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
+use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
  *  An adapter class for the PHP-GD extension.
  */
 class Gd extends MetadataAdapter
 {
-    protected function retrieve(string $path): FileMetadata|bool
+    protected function retrieve(Attachment $file): FileMetadata|bool
     {
-        try {
-            $imageInfo = getimagesize($path);
-        } catch (\ErrorException $e) {
-            return false;
-        }
-
+        $imageInfo = AttachmentManager::getImageSizes($file);
         if (! $imageInfo) {
             return false;
         }

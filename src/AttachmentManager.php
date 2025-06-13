@@ -5,6 +5,7 @@ namespace VanOns\LaravelAttachmentLibrary;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -343,6 +344,26 @@ class AttachmentManager
     }
 
     /**
+     * Return contents of attachment.
+     */
+    public function getContents(Attachment $file): ?string
+    {
+        return Storage::disk($file->disk)->get($file->full_path);
+    }
+
+    /**
+     * Check if attachment is on a remote disk.
+     */
+    public function isRemote(Attachment $file): bool
+    {
+        if (!config()->has("filesystems.disks.{$file->disk}")) {
+            return false;
+        }
+
+        return config("filesystems.disks.{$file->disk}.driver", 'local') !== 'local';
+    }
+
+    /**
      * Check if attachment is of given type.
      */
     public function isType(Attachment $file, string $type): bool
@@ -365,6 +386,8 @@ class AttachmentManager
     }
 
     /**
+     * Return metadata for attachment.
+     *
      * @throws IncompatibleClassMappingException if metadata retriever does not extend MetadataAdapter.
      */
     public function getMetadata(Attachment $file): FileMetadata|false
@@ -380,9 +403,49 @@ class AttachmentManager
                 throw new IncompatibleClassMappingException($metadataRetriever, MetadataAdapter::class);
             }
 
-            return (new $metadataRetriever())->getMetadata($file->absolute_path);
+            return (new $metadataRetriever())->getMetadata($file);
         }
 
         return false;
+    }
+
+    /**
+     * Return image sizes of attachment.
+     *
+     * @param  Attachment|string  $file  Attachment model or file path.
+     */
+    public function getImageSizes(Attachment|string $file): ?array
+    {
+        if (is_string($file)) {
+            $file = $this->file($file);
+        }
+
+        if (!$file || !$file->isImage()) {
+            return null;
+        }
+
+        return Cache::remember(
+            implode('-', ['attachment-manager', hash('sha256', $file->full_path)]),
+            now()->addDay(),
+            function () use ($file) {
+                $path = $file->absolute_path;
+
+                // If the file is on a remote disk, we need to retrieve its contents first. This way we can also access the
+                // file if the disk is not publicly accessible.
+                if ($file->isRemote()) {
+                    $contents = $file->getContents();
+                    if (!$contents) {
+                        return null;
+                    }
+
+                    $tmpFile = tmpfile();
+                    $metaData = stream_get_meta_data($tmpFile);
+                    fwrite($tmpFile, $contents);
+                    $path = $metaData['uri'];
+                }
+
+                return getimagesize($path) ?: null;
+            }
+        );
     }
 }

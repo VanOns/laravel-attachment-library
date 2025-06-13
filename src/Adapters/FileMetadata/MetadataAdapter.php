@@ -4,26 +4,22 @@ namespace VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata;
 
 use Illuminate\Support\Facades\Cache;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
+use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 abstract class MetadataAdapter
 {
-    protected string $cacheKey = 'image-adapter';
+    protected string $cacheKey = 'metadata-adapter';
 
-    public function getMetadata(string $path): FileMetadata|bool
+    public function getMetadata(Attachment $file): FileMetadata|bool
     {
-        $cacheKey = implode('-', [$this->cacheKey, hash('sha256', $path)]);
-        $cachedItem = Cache::get($cacheKey);
+        $path = $file->absolute_path;
 
-        if ($cachedItem !== null) {
-            return $cachedItem;
-        }
-
-        $item = $this->retrieve($path);
-
-        Cache::set($cacheKey, $item);
-
-        return $item;
+        return Cache::remember(
+            implode('-', [$this->cacheKey, hash('sha256', $path)]),
+            now()->addDay(),
+            fn () => $this->retrieve($file)
+        );
     }
 
-    abstract protected function retrieve(string $path): FileMetadata|bool;
+    abstract protected function retrieve(Attachment $file): FileMetadata|bool;
 }
