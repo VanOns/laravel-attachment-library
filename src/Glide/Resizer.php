@@ -5,6 +5,7 @@ namespace VanOns\LaravelAttachmentLibrary\Glide;
 use Illuminate\Support\Facades\URL;
 use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Facades\Glide;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -87,7 +88,7 @@ class Resizer
         if ($this->height) {
             [$width, $height] = $this->getImageSize();
 
-            return ! empty($height)
+            return !empty($height)
                 ? round($this->calculateHeight() / $height * $width)
                 : 0;
         }
@@ -114,7 +115,7 @@ class Resizer
         if ($this->width) {
             [$width, $height] = $this->getImageSize();
 
-            return ! empty($width)
+            return !empty($width)
                 ? round($this->calculateWidth() / $width * $height)
                 : 0;
         }
@@ -159,7 +160,7 @@ class Resizer
     /**
      * Set the aspect ratio for the image.
      *
-     * @param  string|float|null  $aspectRatio  Aspect ratio as a float or a string in the format 'width/height'.
+     * @param string|float|null $aspectRatio Aspect ratio as a float or a string in the format 'width/height'.
      */
     public function aspectRatio(string|float|null $aspectRatio): static
     {
@@ -206,7 +207,7 @@ class Resizer
 
     public function cacheKey(): string
     {
-        return sha1($this->path.$this->width.$this->height.$this->format.$this->size.$this->aspectRatio);
+        return sha1($this->path . $this->width . $this->height . $this->format . $this->size . $this->aspectRatio);
     }
 
     /**
@@ -217,15 +218,23 @@ class Resizer
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
-        $url = URL::signedRoute('glide', [
-            'options' => app(OptionsParser::class)->toString([
-                'w' => $width,
-                'h' => $height,
-                'fit' => $this->fit->value,
-                'fm' => $this->format,
-            ]),
-            'path' => $this->path,
-        ]);
+        $options = [
+            'w' => $width,
+            'h' => $height,
+            'fit' => $this->fit->value,
+            'fm' => $this->format,
+        ];
+
+        if (Glide::imageIsSupported($this->path, $options)) {
+            $url = URL::signedRoute('glide', [
+                'options' => app(OptionsParser::class)->toString($options),
+                'path' => $this->path,
+            ]);
+        } else {
+            // Return the original file if Glide cannot parse the image.
+            $file = AttachmentManager::file($this->path);
+            $url = $file?->url ?? null;
+        }
 
         return [
             'width' => $width,

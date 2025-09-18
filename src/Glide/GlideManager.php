@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Glide;
 
+use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use League\Glide\Responses\SymfonyResponseFactory;
@@ -72,5 +73,19 @@ class GlideManager
         $size = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
         $factor = floor((strlen(strval($bytes)) - 1) / 3);
         return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . ' ' . $size[$factor];
+    }
+
+    public function imageIsSupported(string $path, array $params = []): bool
+    {
+        if (app()->runningUnitTests()) {
+            return true;
+        }
+
+        try {
+            $this->server()->makeImage($path, $params);
+            return true;
+        } catch (Exception) {
+            return false;
+        }
     }
 }

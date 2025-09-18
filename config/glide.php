@@ -4,6 +4,7 @@ return [
 
     'driver' => env('GLIDE_DRIVER', 'gd'),
     'source' => storage_path('app/public'),
+
     /**
      * The disk that will be used to store the resized images.
      * Can be a name of an existing disk like public or a disk configuration.
@@ -15,11 +16,13 @@ return [
         'url' => env('APP_URL') . '/img',
         'visibility' => 'public',
     ],
+
     /**
      * Here you can configure additional symbolic links that will
      * be created when the `storage:link` command is run.
      */
-    'links' => [ public_path('img') => storage_path('app/img') ],
+    'links' => [public_path('img') => storage_path('app/img')],
+
     'defaults' => [],
     'presets' => [],
     'max_image_size' => 2160 * 2160,
