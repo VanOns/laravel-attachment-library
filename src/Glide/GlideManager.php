@@ -77,6 +77,7 @@ class GlideManager
 
     public function imageIsSupported(string $path, array $params = []): bool
     {
+        // When running inside unit tests, the files are mocked, so they don't actually exist on the filesystem.
         if (app()->runningUnitTests()) {
             return true;
         }
