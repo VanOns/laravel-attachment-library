@@ -128,8 +128,22 @@ class AttachmentManager
      */
     public function findByUrl(string $url): ?Attachment
     {
-        $baseUrl = Str::chopEnd(route('attachment', ['attachment' => 'PLACEHOLDER']), 'PLACEHOLDER');
-        $path = Str::chopStart($url, $baseUrl);
+        $placeholder = 'PLACEHOLDER';
+        $baseUrlWithPlaceholder = route('attachment', ['attachment' => $placeholder]);
+
+        // Remove the placeholder suffix from the generated route URL.
+        if (Str::endsWith($baseUrlWithPlaceholder, $placeholder)) {
+            $baseUrl = substr($baseUrlWithPlaceholder, 0, -strlen($placeholder));
+        } else {
+            $baseUrl = $baseUrlWithPlaceholder;
+        }
+
+        // Remove the base URL prefix from the provided URL to get the path.
+        if (Str::startsWith($url, $baseUrl)) {
+            $path = substr($url, strlen($baseUrl));
+        } else {
+            $path = $url;
+        }
 
         return $this->file($path);
     }
