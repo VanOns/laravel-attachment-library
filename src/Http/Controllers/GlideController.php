@@ -5,9 +5,11 @@ namespace VanOns\LaravelAttachmentLibrary\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Middleware\ValidateSignature;
+use Intervention\Image\Exception\NotReadableException;
 use League\Glide\Filesystem\FileNotFoundException;
 use League\Glide\Server;
 use Symfony\Component\HttpFoundation\Response;
+use VanOns\LaravelAttachmentLibrary\Glide\GlideManager;
 use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
 
@@ -27,6 +29,16 @@ class GlideController implements HasMiddleware
             );
         } catch (FileNotFoundException) {
             abort(404);
+        } catch (NotReadableException) {
+            $file = config('glide.source') . "/{$path}";
+
+            if (!file_exists($file)) {
+                abort(404);
+            }
+
+            return response()->file(
+                $file
+            );
         }
     }
 
