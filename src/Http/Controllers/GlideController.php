@@ -38,7 +38,7 @@ class GlideController implements HasMiddleware
             }
 
             // Return the original file if Glide cannot parse the image.
-            return response()->file($attachment->absolute_path, $attachment->mime_type ? ['Content-Type' => $attachment->mime_type] : []);
+            return response()->file($attachment->absolute_path);
         }
     }
 
