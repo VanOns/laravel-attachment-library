@@ -33,10 +33,14 @@ An example code snippet could be:
     ->resize();
 
 /**
+ * Valid source:
  * [
  *   'width' => 500,
  *   'height' => 200,
  *   'url' => 'http://test.local/img/path-to-image.jpg?w=500&h=200&signature=....'
  * ]
+ * 
+ * Invalid source:
+ * []
  */
 ```
