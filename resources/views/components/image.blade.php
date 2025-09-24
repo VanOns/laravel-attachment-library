@@ -40,42 +40,64 @@
                         $data = Resizer::src($src)->width($width)->size($size)->aspectRatio($aspectRatio)->format($format)->resize();
                     @endphp
 
+                    @unless(empty($data))
+                        <source
+                            srcset="{{ $data['url'] }}"
+                            media="{{ $media }}"
+                            width="{{ $data['width'] }}"
+                            height="{{ $data['height'] }}"
+                            type="image/{{ $format }}"
+                        >
+                    @endunless
+                @endforeach
+
+                @php($data = Resizer::src($src)->width($breakpoints[$keys->first()])->size($size)->aspectRatio($aspectRatio)->format($format)->resize())
+                @unless(empty($data))
                     <source
                         srcset="{{ $data['url'] }}"
-                        media="{{ $media }}"
                         width="{{ $data['width'] }}"
                         height="{{ $data['height'] }}"
                         type="image/{{ $format }}"
                     >
-                @endforeach
+                @endunless
+            @endforeach
 
-                @php($data = Resizer::src($src)->width($breakpoints[$keys->first()])->size($size)->aspectRatio($aspectRatio)->format($format)->resize())
-                <source
-                    srcset="{{ $data['url'] }}"
+            @php($data = Resizer::src($src)->width(end($breakpoints))->size($size)->aspectRatio($aspectRatio)->resize())
+            @unless(empty($data))
+                <img
+                    src="{{ $data['url'] }}"
                     width="{{ $data['width'] }}"
                     height="{{ $data['height'] }}"
-                    type="image/{{ $format }}"
+                    alt="{{ $alt }}"
+
+                    @if($lightbox)
+                        data-fancybox="{{ $lightboxGallery }}"
+                    @endif
+
+                    @class([
+                        'h-full w-full',
+                        'object-cover' => $fit === 'cover',
+                        'object-contain' => $fit === 'contain',
+                        $imageClass,
+                    ])
                 >
-            @endforeach
+            @endunless
+        @else
+            <img
+                src="{{ $attachment->url }}"
+                alt="{{ $alt }}"
+
+                @if($lightbox)
+                    data-fancybox="{{ $lightboxGallery }}"
+                @endif
+
+                @class([
+                    'h-full w-full',
+                    'object-cover' => $fit === 'cover',
+                    'object-contain' => $fit === 'contain',
+                    $imageClass,
+                ])
+            >
         @endif
-
-        @php($data = Resizer::src($src)->width(end($breakpoints))->size($size)->aspectRatio($aspectRatio)->resize())
-        <img
-            src="{{ $data['url'] }}"
-            width="{{ $data['width'] }}"
-            height="{{ $data['height'] }}"
-            alt="{{ $alt }}"
-
-            @if($lightbox)
-                data-fancybox="{{ $lightboxGallery }}"
-            @endif
-
-            @class([
-                'h-full w-full',
-                'object-cover' => $fit === 'cover',
-                'object-contain' => $fit === 'contain',
-                $imageClass,
-            ])
-        >
     @endif
 </picture>
