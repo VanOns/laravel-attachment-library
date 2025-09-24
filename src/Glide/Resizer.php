@@ -215,26 +215,22 @@ class Resizer
      */
     public function resize(): array
     {
+        if (!Glide::imageIsSupported($this->path)) {
+            return [];
+        }
+
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
-        $options = [
-            'w' => $width,
-            'h' => $height,
-            'fit' => $this->fit->value,
-            'fm' => $this->format,
-        ];
-
-        if (Glide::imageIsSupported($this->path, $options)) {
-            $url = URL::signedRoute('glide', [
-                'options' => app(OptionsParser::class)->toString($options),
-                'path' => $this->path,
-            ]);
-        } else {
-            // Return the original file if Glide cannot parse the image.
-            $file = AttachmentManager::file($this->path);
-            $url = $file?->url ?? null;
-        }
+        $url = URL::signedRoute('glide', [
+            'options' => app(OptionsParser::class)->toString([
+                'w' => $width,
+                'h' => $height,
+                'fit' => $this->fit->value,
+                'fm' => $this->format,
+            ]),
+            'path' => $this->path,
+        ]);
 
         return [
             'width' => $width,
