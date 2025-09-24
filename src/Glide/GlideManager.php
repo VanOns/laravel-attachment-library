@@ -64,24 +64,18 @@ class GlideManager
 
     public function cacheSizeHumanReadable(): string
     {
-
         return $this->humanReadableSize($this->cacheSize());
     }
 
     public function humanReadableSize(int $bytes, $decimals = 2): string
     {
         $size = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        $factor = floor((strlen(strval($bytes)) - 1) / 3);
-        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . ' ' . $size[$factor];
+        $factor = floor((strlen((string) $bytes) - 1) / 3);
+        return sprintf("%.{$decimals}f", $bytes / (1024 ** $factor)) . ' ' . $size[$factor];
     }
 
     public function imageIsSupported(string $path, array $params = []): bool
     {
-        // When running inside unit tests, the files are mocked, so they don't actually exist on the filesystem.
-        if (app()->runningUnitTests()) {
-            return true;
-        }
-
         try {
             $this->server()->makeImage($path, $params);
             return true;
