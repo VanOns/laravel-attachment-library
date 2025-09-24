@@ -51,8 +51,7 @@
                     @endunless
                 @endforeach
 
-                @php($data = Resizer::src($src)->width($breakpoints[$keys->first()])->size($size)->aspectRatio($aspectRatio)->format($format)->resize())
-                @unless(empty($data))
+                @unless(empty($data = Resizer::src($src)->width($breakpoints[$keys->first()])->size($size)->aspectRatio($aspectRatio)->format($format)->resize()))
                     <source
                         srcset="{{ $data['url'] }}"
                         width="{{ $data['width'] }}"
@@ -62,8 +61,7 @@
                 @endunless
             @endforeach
 
-            @php($data = Resizer::src($src)->width(end($breakpoints))->size($size)->aspectRatio($aspectRatio)->resize())
-            @unless(empty($data))
+            @unless(empty($data = Resizer::src($src)->width(end($breakpoints))->size($size)->aspectRatio($aspectRatio)->resize()))
                 <img
                     src="{{ $data['url'] }}"
                     width="{{ $data['width'] }}"
