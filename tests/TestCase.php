@@ -5,6 +5,7 @@ namespace VanOns\LaravelAttachmentLibrary\Test;
 use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\GlideServiceProvider;
 use VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider;
 
 class TestCase extends OrchestraTestCase
@@ -16,7 +17,10 @@ class TestCase extends OrchestraTestCase
      */
     protected function getPackageProviders($app): array
     {
-        return [LaravelAttachmentLibraryServiceProvider::class];
+        return [
+            LaravelAttachmentLibraryServiceProvider::class,
+            GlideServiceProvider::class,
+        ];
     }
 
     /**

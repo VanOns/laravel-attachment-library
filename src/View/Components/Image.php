@@ -4,6 +4,7 @@ namespace VanOns\LaravelAttachmentLibrary\View\Components;
 
 use Illuminate\View\Component;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
+use VanOns\LaravelAttachmentLibrary\Facades\Glide;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 /**
@@ -19,8 +20,10 @@ class Image extends Component
 
     public ?Attachment $attachment;
 
+    public bool $supportedByGlide;
+
     public function __construct(
-        public null|string|int|Attachment $src = null,
+        public string|int|Attachment|null $src = null,
         public string $size = 'full',
         public string|float|null $aspectRatio = null,
         public string $class = ''
@@ -28,6 +31,7 @@ class Image extends Component
         $this->breakpoints = config('glide.breakpoints');
         $this->formats = config('glide.formats');
         $this->attachment = $this->retrieveAttachment();
+        $this->supportedByGlide = $this->getGlideSupport();
     }
 
     public function render()
@@ -50,5 +54,14 @@ class Image extends Component
         }
 
         return null;
+    }
+
+    protected function getGlideSupport(): bool
+    {
+        if (!$this->attachment) {
+            return false;
+        }
+
+        return Glide::imageIsSupported($this->attachment->full_path);
     }
 }
