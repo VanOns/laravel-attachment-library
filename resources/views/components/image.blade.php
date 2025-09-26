@@ -3,7 +3,7 @@
     'imageClass' => '',
     'alt' => '',
     'lightbox' => false,
-    'lightboxGallery' => 'gallery-a'
+    'lightboxGallery' => 'gallery-a',
 ])
 
 @php
@@ -27,7 +27,7 @@
     $keys = collect($breakpoints)->keys();
 @endphp
 
-<picture @class(['block overflow-hidden', $class]) {{ $attributes->except('class') }}>
+<picture @class(['block overflow-hidden', $class]) {{ $attributes->except(['class', 'loading']) }}>
     @if($src)
         @if($supportedByGlide)
             @foreach($formats as $format)
@@ -67,6 +67,7 @@
                     width="{{ $data['width'] }}"
                     height="{{ $data['height'] }}"
                     alt="{{ $alt }}"
+                    {{ $attributes->only('loading') }}
 
                     @if($lightbox)
                         data-fancybox="{{ $lightboxGallery }}"
@@ -84,6 +85,7 @@
             <img
                 src="{{ $attachment->url }}"
                 alt="{{ $alt }}"
+                {{ $attributes->only('loading') }}
 
                 @if($lightbox)
                     data-fancybox="{{ $lightboxGallery }}"
