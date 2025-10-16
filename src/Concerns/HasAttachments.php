@@ -12,4 +12,9 @@ trait HasAttachments
     {
         return $this->morphToMany(Config::get('attachment-library.model', Attachment::class), 'attachable');
     }
+
+    public function attachmentCollection(string $collection): MorphToMany
+    {
+        return $this->attachments()->wherePivot('collection', $collection);
+    }
 }
