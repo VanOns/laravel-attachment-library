@@ -2,7 +2,10 @@
 
 # Laravel Attachment Library
 
-<!-- BADGES -->
+[![Latest version on GitHub](https://img.shields.io/github/release/VanOns/laravel-attachment-library.svg?style=flat-square)](https://github.com/VanOns/laravel-attachment-library/releases)
+[![Total downloads](https://img.shields.io/packagist/dt/van-ons/laravel-attachment-library.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-attachment-library)
+[![GitHub issues](https://img.shields.io/github/issues/VanOns/laravel-attachment-library?style=flat-square)](https://github.com/VanOns/laravel-attachment-library/issues)
+[![License](https://img.shields.io/github/license/VanOns/laravel-attachment-library?style=flat-square)](https://github.com/VanOns/laravel-attachment-library/blob/main/LICENSE.md)
 
 A Laravel library for attaching files to Eloquent models.
 
