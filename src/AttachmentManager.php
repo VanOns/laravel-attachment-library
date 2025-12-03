@@ -182,6 +182,39 @@ class AttachmentManager
     }
 
     /**
+     * Replace existing file on disk and update database entry.
+     *
+     * @throws DestinationAlreadyExistsException
+     * @throws DisallowedCharacterException
+     */
+    public function replace(UploadedFile $file, Attachment $attachment): Attachment
+    {
+        $filename = new Filename($file);
+
+        $this->validateBasename($filename);
+
+        $disk = $this->getFilesystem();
+
+        $path = implode('/', array_filter([$attachment->path, $filename]));
+
+        if ($disk->exists($path) && $path !== $attachment->full_path) {
+            throw new DestinationAlreadyExistsException();
+        }
+
+        $disk->delete($attachment->full_path);
+        $disk->put($path, $file->getContent());
+
+        $attachment->update([
+            'name' => $filename->name,
+            'extension' => $filename->extension,
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+        ]);
+
+        return $attachment;
+    }
+
+    /**
      * Validate filename and throw exception if validation fails.
      *
      * @throws DisallowedCharacterException if file name contains disallowed characters.
@@ -222,7 +255,7 @@ class AttachmentManager
      *
      * @throws DestinationAlreadyExistsException if conflicting file exists in desired path.
      */
-    public function move(Attachment $file, string $desiredPath): void
+    public function move(Attachment $file, ?string $desiredPath): void
     {
         $disk = $this->getFilesystem();
         $path = "{$desiredPath}/{$file->filename}";
