@@ -50,8 +50,13 @@ class Attachment extends Model
         'name',
         'path',
         'size',
+        'focal_point',
         'title',
         'updated_by',
+    ];
+
+    protected $casts = [
+        'focal_point' => 'json'
     ];
 
     protected static function newFactory(): Factory
