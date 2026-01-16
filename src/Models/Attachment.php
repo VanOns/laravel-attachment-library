@@ -56,7 +56,7 @@ class Attachment extends Model
     ];
 
     protected $casts = [
-        'focal_point' => 'json'
+        'focal_point' => 'json',
     ];
 
     protected static function newFactory(): Factory
