@@ -35,7 +35,10 @@ class Resizer
 
     public function src(string|int|Attachment $src): static
     {
-        $this->path = $this->getPath($src);
+        if (is_int($src)) {
+            /* @var Attachment $src */
+            $src = Attachment::find($src);
+        }
 
         if ($src instanceof Attachment) {
             $x = $src->focal_point['x'] ?? 50;
@@ -43,6 +46,8 @@ class Resizer
 
             $this->crop($x, $y);
         }
+
+        $this->path = $this->getPath($src);
 
         return $this;
     }
@@ -222,15 +227,8 @@ class Resizer
      *
      * @throws \Exception If the path cannot be determined.
      */
-    protected function getPath(string|int|Attachment $src): ?string
+    protected function getPath(string|Attachment $src): ?string
     {
-        if (is_numeric($src)) {
-            /* @var Attachment $attachment */
-            $attachment = Attachment::find($src);
-
-            return $attachment->full_path;
-        }
-
         if ($src instanceof Attachment) {
             return $src->full_path;
         }
