@@ -32,6 +32,7 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
  * @property string $path
  * @property string $url
  * @property string $title
+ * @property array $focal_point
  *
  * @mixin AttachmentQueryBuilder
  */
