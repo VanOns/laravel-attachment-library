@@ -27,12 +27,26 @@ class Resizer
 
     public Fit $fit = Fit::CROP;
 
+    private array $crop = [];
+
     public function __construct(public array $sizes)
     {
     }
 
     public function src(string|int|Attachment $src): static
     {
+        if (is_int($src)) {
+            /* @var Attachment $src */
+            $src = Attachment::find($src);
+        }
+
+        if ($src instanceof Attachment) {
+            $x = $src->focal_point['x'] ?? 50;
+            $y = $src->focal_point['y'] ?? 50;
+
+            $this->crop($x, $y);
+        }
+
         $this->path = $this->getPath($src);
 
         return $this;
@@ -67,6 +81,30 @@ class Resizer
         $this->fit = $fit;
 
         return $this;
+    }
+
+    public function getFit(): string
+    {
+        if ($this->fit === Fit::CROP && !empty($this->crop)) {
+            $x = $this->crop['x'] ?? 50;
+            $y = $this->crop['y'] ?? 50;
+            $zoom = $this->crop['zoom'] ?? 1;
+
+            return "crop-{$x}-{$y}-{$zoom}";
+        }
+
+        return $this->fit->value;
+    }
+
+    public function crop(int $x = 50, int $y = 50, float $zoom = 1): static
+    {
+        $this->crop = [
+            'x' => $x,
+            'y' => $y,
+            'zoom' => $zoom,
+        ];
+
+        return $this->fit(Fit::CROP);
     }
 
     /**
@@ -189,15 +227,8 @@ class Resizer
      *
      * @throws \Exception If the path cannot be determined.
      */
-    protected function getPath(string|int|Attachment $src): ?string
+    protected function getPath(string|Attachment $src): ?string
     {
-        if (is_numeric($src)) {
-            /* @var Attachment $attachment */
-            $attachment = Attachment::find($src);
-
-            return $attachment->full_path;
-        }
-
         if ($src instanceof Attachment) {
             return $src->full_path;
         }
@@ -226,7 +257,7 @@ class Resizer
             'options' => app(OptionsParser::class)->toString([
                 'w' => $width,
                 'h' => $height,
-                'fit' => $this->fit->value,
+                'fit' => $this->getFit(),
                 'fm' => $this->format,
             ]),
             'path' => $this->path,
