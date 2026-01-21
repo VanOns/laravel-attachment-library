@@ -14,6 +14,7 @@ use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
 /**
  * @property int $created_by
@@ -193,5 +194,15 @@ class Attachment extends Model
     public function resolveRouteBinding($value, $field = null)
     {
         return Attachment::whereFilename(new Filename($value))->first() ?? abort(Response::HTTP_NOT_FOUND);
+    }
+
+    public function getFileIdentifier(): FileIdentifier
+    {
+        return new FileIdentifier(
+            $this->disk,
+            $this->path,
+            $this->name,
+            $this->extension
+        );
     }
 }

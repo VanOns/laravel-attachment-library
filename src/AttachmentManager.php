@@ -19,6 +19,7 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
 /**
  * Performs attachment related actions on database and filesystem.
@@ -84,12 +85,62 @@ class AttachmentManager
      */
     public function directories(?string $path = null): Collection
     {
-        $directories = array_map(
-            fn ($directory) => new $this->directoryClass($directory),
-            $this->getFilesystem()->directories($path)
-        );
+        $this->updateFiles($path);
 
-        return Collection::make($directories);
+        return collect($this->getFilesystem()->directories($path))
+            ->each(fn ($directory) => $this->updateFiles($directory))
+            ->map(fn ($directory) => new $this->directoryClass($directory));
+    }
+
+    /**
+     * Create missing database entries for files in the directory.
+     *
+     * @param string $directory
+     * @return void
+     */
+    public function updateFiles(?string $directory): void
+    {
+        $files = $this->getFilesystem()->files($directory);
+
+        $existing = $this->attachmentClass::whereDisk($this->disk)
+            ->wherePath($directory)
+            ->get()
+            ->map(fn ($item) => (string) $item->getFileIdentifier());
+
+        $data = [];
+
+        foreach ($files as $file) {
+            $filename = new Filename($file);
+
+            if (!$filename->name) {
+                continue;
+            }
+
+            $size = $this->getFilesystem()->size($file);
+            $mimeType = $this->getFilesystem()->mimeType($file);
+
+            $identifier = (string) (new FileIdentifier(
+                $this->disk,
+                $directory,
+                $filename->name,
+                $filename->extension,
+            ));
+
+            if ($existing->contains($identifier)) {
+                continue;
+            }
+
+            $data[] = [
+                'name' => $filename->name,
+                'extension' => $filename->extension,
+                'mime_type' => $mimeType,
+                'disk' => $this->disk,
+                'path' => $filename->path,
+                'size' => $size,
+            ];
+        }
+
+        Attachment::insert($data);
     }
 
     protected function getFilesystem(): Filesystem
