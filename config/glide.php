@@ -24,15 +24,29 @@ return [
     'links' => [public_path('img') => storage_path('app/img')],
 
     'defaults' => [],
-    'presets' => [],
+
+    /**
+     * The available presets for image resizing.
+     * Width and height are relative to the current breakpoint width.
+     * A value of 1 means that the image will be exactly the size as the breakpoint width.
+     * While a value of 0.5 means that the image will be half the size of the breakpoint width.
+     * These will be used in the image URLs so they cannot contain slashes or special characters.
+     */
+    'presets' => [
+        'default' => [ 'w' => 1.0 ], // Keep original aspect ratio
+        'default-half' => [ 'w' => 0.5 ], // Keep original aspect ratio
+        'square' => [ 'w' => 1.0, 'h' => 1.0 ], // 1:1 ratio
+        'square-half' => [ 'w' => 0.5, 'h' => 0.5 ], // 1:1 ratio
+        'video' => [ 'w' => 1.0, 'h' => 0.5625 ], // 16:9 ratio
+        'video-half' => [ 'w' => 0.5, 'h' => 0.28125 ], // 16:9 ratio
+    ],
+
     'max_image_size' => 2160 * 2160,
 
     /**
      * The breakpoints that are used in the application.
      */
     'breakpoints' => [
-        'xxs' => 320,
-        'xs' => 375,
         'sm' => 480,
         'md' => 786,
         'lg' => 1024,
@@ -58,5 +72,4 @@ return [
      * Example: With [ 'webp' , 'jpg' ] browsers will attempt to load webp before jpg.
      */
     'formats' => ['webp', 'jpg'],
-
 ];

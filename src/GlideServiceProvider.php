@@ -33,6 +33,10 @@ class GlideServiceProvider extends ServiceProvider
         });
 
         app()->bind('attachment.glide.manager', GlideManager::class);
+
+        if (class_exists("Inertia\Inertia")) {
+            \Inertia\Inertia::share('glide.breakpoints', config('glide.breakpoints'));
+        }
     }
 
     public function boot(): void
