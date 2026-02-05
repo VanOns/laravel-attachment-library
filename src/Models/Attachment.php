@@ -205,4 +205,22 @@ class Attachment extends Model
             $this->extension
         );
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Filter attachments by directory if set in AttachmentManager
+        static::addGlobalScope('directory', function (AttachmentQueryBuilder $builder) {
+            $directory = AttachmentManager::getDirectory();
+            if (!$directory) {
+                return;
+            }
+
+            $builder->where(function ($query) use ($directory) {
+                $query->where('path', 'like', $directory . '/%')
+                      ->orWhere('path', '=', $directory);
+            });
+        });
+    }
 }

@@ -12,10 +12,15 @@ readonly class Directory
     public string $name;
 
     public string $fullPath;
+    public bool $isVisible;
 
-    public function __construct(string $directoryPath)
+    public function __construct(string $directoryPath, ?\Closure $isInDirectory = null)
     {
         $this->fullPath = $directoryPath;
+
+        $this->isVisible = $isInDirectory
+            ? $isInDirectory($directoryPath)
+            : true;
 
         $path = explode('/', $directoryPath);
 
@@ -23,5 +28,10 @@ readonly class Directory
 
         $path = implode('/', $path);
         $this->path = $path !== '' ? $path : null;
+    }
+
+    public function isVisible(): bool
+    {
+        return $this->isVisible;
     }
 }

@@ -10,6 +10,13 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
+     * Directory within disk to store attachments in.
+     *
+     * Note: This is not a root directory, but a subdirectory within the specified disk. The full path to attachments will be {disk root}/{directory}.
+     */
+    'directory' => env('ATTACHMENTS_DIRECTORY'),
+
+    /**
      * Map file metadata retrievers to array of MIME-types.
      *
      * Use '*' for wildcard.

@@ -28,6 +28,8 @@ class AttachmentManager
 {
     protected string $disk;
 
+    protected ?string $directory;
+
     protected string $attachmentClass;
 
     protected string $directoryClass;
@@ -44,6 +46,7 @@ class AttachmentManager
     public function __construct()
     {
         $this->disk = Config::get('attachment-library.disk', 'public');
+        $this->directory = Config::get('attachment-library.directory');
         $this->attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
         $this->directoryClass = Config::get('attachment-library.class_mapping.directory', Directory::class);
         $this->attachmentTypeMapping = Config::get('attachment-library.attachment_mime_type_mapping', []);
@@ -79,23 +82,62 @@ class AttachmentManager
     }
 
     /**
+     * Set the directory for file interactions. This is a subdirectory within the specified disk.
+     */
+    public function setDirectory(?string $directory): AttachmentManager
+    {
+        $this->directory = $directory;
+
+        return $this;
+    }
+
+    /**
+     * Get the directory for file interactions. This is a subdirectory within the specified disk.
+     */
+    public function getDirectory(): ?string
+    {
+        return $this->directory;
+    }
+
+    public function isInDirectory(?string $path = null, ?string $directory = null): bool
+    {
+        $directory ??= $this->getDirectory();
+        if (!$directory) {
+            return true;
+        }
+        if (!$path) {
+            return false;
+        }
+
+        $directory = rtrim($directory, '/') . '/';
+        $path = rtrim($path, '/') . '/';
+
+        return Str::startsWith($path, $directory);
+    }
+
+    /**
      * Return all directories under a given path.
      *
      * @param  string|null  $path  Use `null` for root of disk.
      */
     public function directories(?string $path = null): Collection
     {
+        if (!$this->isInDirectory($path)) {
+            return collect();
+        }
+
         $this->updateFiles($path);
 
         return collect($this->getFilesystem()->directories($path))
             ->each(fn ($directory) => $this->updateFiles($directory))
-            ->map(fn ($directory) => new $this->directoryClass($directory));
+            ->map(fn ($directory) => new $this->directoryClass($directory, fn ($dir) => $this->isInDirectory($dir)))
+            ->filter(fn (Directory $directory) => $directory->isVisible());
     }
 
     /**
      * Create missing database entries for files in the directory.
      *
-     * @param string $directory
+     * @param string|null $directory
      * @return void
      */
     public function updateFiles(?string $directory): void
