@@ -21,9 +21,6 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
-/**
- * Performs attachment related actions on database and filesystem.
- */
 class AttachmentManager
 {
     protected string $disk;
@@ -130,7 +127,7 @@ class AttachmentManager
 
         return collect($this->getFilesystem()->directories($path))
             ->each(fn ($directory) => $this->updateFiles($directory))
-            ->map(fn ($directory) => new $this->directoryClass($directory, fn ($dir) => $this->isInDirectory($dir)))
+            ->map(fn ($directory) => new $this->directoryClass($directory, checkVisibility: true))
             ->filter(fn (Directory $directory) => $directory->isVisible());
     }
 

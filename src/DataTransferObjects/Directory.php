@@ -2,6 +2,8 @@
 
 namespace VanOns\LaravelAttachmentLibrary\DataTransferObjects;
 
+use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+
 /**
  * Data Transfer Object for directories.
  */
@@ -12,14 +14,15 @@ readonly class Directory
     public string $name;
 
     public string $fullPath;
+
     public bool $isVisible;
 
-    public function __construct(string $directoryPath, ?\Closure $isInDirectory = null)
+    public function __construct(string $directoryPath, bool $checkVisibility = false)
     {
         $this->fullPath = $directoryPath;
 
-        $this->isVisible = $isInDirectory
-            ? $isInDirectory($directoryPath)
+        $this->isVisible = $checkVisibility
+            ? AttachmentManager::isInDirectory($directoryPath)
             : true;
 
         $path = explode('/', $directoryPath);
