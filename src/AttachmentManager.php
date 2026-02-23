@@ -112,7 +112,7 @@ class AttachmentManager
         foreach ($files as $file) {
             $filename = new Filename($file);
 
-            if (!$filename->name) {
+            if (!$filename->name || !$filename->extension) {
                 continue;
             }
 
@@ -210,6 +210,10 @@ class AttachmentManager
     public function upload(UploadedFile $file, ?string $desiredPath = null): Attachment
     {
         $filename = new Filename($file);
+
+        if (is_null($filename->extension)) {
+            throw new DisallowedCharacterException('File must have an extension.');
+        }
 
         $this->validateBasename($filename);
 
