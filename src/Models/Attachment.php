@@ -3,6 +3,7 @@
 namespace VanOns\LaravelAttachmentLibrary\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -204,5 +205,14 @@ class Attachment extends Model
             $this->name,
             $this->extension
         );
+    }
+
+    public static function findOrdered(array $values, string $column = 'id'): Collection
+    {
+        $idPositions = array_flip($values);
+
+        return static::query()->whereIn($column, $values)
+            ->get()
+            ->sortBy(fn ($attachment) => $idPositions[$attachment->id] ?? PHP_INT_MAX);
     }
 }

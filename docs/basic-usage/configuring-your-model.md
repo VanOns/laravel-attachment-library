@@ -84,3 +84,23 @@ This allows you to retrieve the attachments in the `gallery` collection like so:
 ```php
 $model->gallery()->get();
 ```
+
+## Ordering
+
+You can order the attachments for your model by providing an `order` value when attaching an attachment:
+
+```php
+$myModel->attachments()->attach($attachment, ['collection' => 'collection_name_here', 'order' => 1]);
+```
+
+The relationship orders the attachments by the `order` value in ascending order. If no `order` value is provided, it defaults to `0`. This means that attachments without an `order` value will be ordered before attachments with an `order` value.
+
+
+To retrieve attachments in a specific order from an array of ID's you can use the `findOrdered` method:
+
+```php
+$attachmentIds = [3, 1, 2];
+$attachments = Attachment::findOrdered($attachmentIds);
+```
+
+This is useful when you are not storing the attachments in a relationship with an `order` value, but you still want to retrieve the attachments in a specific order.
