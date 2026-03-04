@@ -10,7 +10,7 @@ trait HasAttachments
 {
     public function attachments(): MorphToMany
     {
-        return $this->morphToMany(Config::get('attachment-library.model', Attachment::class), 'attachable');
+        return $this->morphToMany(Config::get('attachment-library.model', Attachment::class), 'attachable')->orderByPivot('order');
     }
 
     public function attachmentCollection(string $collection): MorphToMany
