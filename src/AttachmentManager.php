@@ -19,7 +19,6 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
-use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
 /**
  * Performs attachment related actions on database and filesystem.
@@ -85,27 +84,52 @@ class AttachmentManager
      */
     public function directories(?string $path = null): Collection
     {
-        $this->updateFiles($path);
+        if (Config::get('attachment-library.auto_sync', true)) {
+            $this->syncIfDue($path);
+        }
 
         return collect($this->getFilesystem()->directories($path))
-            ->each(fn ($directory) => $this->updateFiles($directory))
+            ->each(function ($directory) {
+                if (Config::get('attachment-library.auto_sync', true)) {
+                    $this->syncIfDue($directory);
+                }
+            })
             ->map(fn ($directory) => new $this->directoryClass($directory));
+    }
+
+    /**
+     * Run updateFiles for the given directory if it hasn't been synced recently.
+     */
+    protected function syncIfDue(?string $directory): void
+    {
+        $ttl = Config::get('attachment-library.auto_sync_interval', 300);
+        $cacheKey = 'attachment-library-last-sync:' . $this->disk . ':' . ($directory ?? '');
+
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        $this->updateFiles($directory);
+
+        Cache::put($cacheKey, true, $ttl);
     }
 
     /**
      * Create missing database entries for files in the directory.
      *
-     * @param string $directory
+     * @param string|null $directory
      * @return void
      */
     public function updateFiles(?string $directory): void
     {
         $files = $this->getFilesystem()->files($directory);
 
+        /** @var Collection<string, boolean> $existing */
         $existing = $this->attachmentClass::whereDisk($this->disk)
             ->wherePath($directory)
+            ->select(['name', 'extension'])
             ->get()
-            ->map(fn ($item) => (string) $item->getFileIdentifier());
+            ->mapWithKeys(fn ($item) => ["{$item->name}.{$item->extension}" => true]);
 
         $data = [];
 
@@ -116,31 +140,23 @@ class AttachmentManager
                 continue;
             }
 
-            $size = $this->getFilesystem()->size($file);
-            $mimeType = $this->getFilesystem()->mimeType($file);
-
-            $identifier = (string) (new FileIdentifier(
-                $this->disk,
-                $directory,
-                $filename->name,
-                $filename->extension,
-            ));
-
-            if ($existing->contains($identifier)) {
+            if ($existing->has("{$filename->name}.{$filename->extension}")) {
                 continue;
             }
 
             $data[] = [
-                'name' => $filename->name,
+                'name'      => $filename->name,
                 'extension' => $filename->extension,
-                'mime_type' => $mimeType,
-                'disk' => $this->disk,
-                'path' => $filename->path,
-                'size' => $size,
+                'mime_type' => $this->getFilesystem()->mimeType($file),
+                'disk'      => $this->disk,
+                'path'      => $filename->path,
+                'size'      => $this->getFilesystem()->size($file),
             ];
         }
 
-        Attachment::insert($data);
+        if (!empty($data)) {
+            $this->attachmentClass::insert($data);
+        }
     }
 
     protected function getFilesystem(): Filesystem

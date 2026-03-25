@@ -10,6 +10,18 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
+     * Automatically sync storage files to the database when browsing directories.
+     * Set to false to disable and trigger syncing manually via updateFiles().
+     */
+    'auto_sync' => true,
+
+    /**
+     * How long (in seconds) to suppress re-syncing a directory after it has been synced.
+     * Default: 300 (5 minutes).
+     */
+    'auto_sync_interval' => 300,
+
+    /**
      * Map file metadata retrievers to array of MIME-types.
      *
      * Use '*' for wildcard.
