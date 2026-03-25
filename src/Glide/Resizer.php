@@ -13,6 +13,8 @@ use VanOns\LaravelAttachmentLibrary\Models\Attachment;
  */
 class Resizer
 {
+    private ?Attachment $attachment = null;
+
     public ?string $path = null;
 
     public ?int $width = null;
@@ -41,6 +43,8 @@ class Resizer
         }
 
         if ($src instanceof Attachment) {
+            $this->attachment = $src;
+
             $x = $src->focal_point['x'] ?? 50;
             $y = $src->focal_point['y'] ?? 50;
 
@@ -184,7 +188,7 @@ class Resizer
      */
     public function getImageSize(): ?array
     {
-        $file = AttachmentManager::file($this->path);
+        $file = $this->attachment ?? AttachmentManager::file($this->path);
 
         if (!$file || !$file->isImage()) {
             return null;
