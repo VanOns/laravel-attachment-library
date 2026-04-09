@@ -4,10 +4,10 @@ namespace VanOns\LaravelAttachmentLibrary\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Intervention\Image\Exception\NotReadableException;
 use League\Glide\Filesystem\FileNotFoundException;
 use League\Glide\Filesystem\FilesystemException;
 use League\Glide\Server;
+use Throwable;
 use Validator;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
@@ -30,7 +30,7 @@ class GlidePresetController
             return $this->generateImage($preset, $breakpoint, $format, $fit, $path);
         } catch (FileNotFoundException) {
             abort(404);
-        } catch (NotReadableException) {
+        } catch (Throwable) {
             $attachment = AttachmentManager::file($path);
             if (!$attachment) {
                 abort(404);
@@ -44,7 +44,6 @@ class GlidePresetController
     /**
      * @throws FilesystemException
      * @throws FileNotFoundException
-     * @throws NotReadableException
      */
     private function generateImage(string $preset, string $breakpoint, string $format, string $fit, string $path)
     {
