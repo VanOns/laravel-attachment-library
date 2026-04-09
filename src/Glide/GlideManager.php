@@ -5,8 +5,10 @@ namespace VanOns\LaravelAttachmentLibrary\Glide;
 use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+use League\Glide\Responses\PsrResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
+use Symfony\Component\HttpFoundation\File\Stream;
 
 class GlideManager
 {
@@ -19,6 +21,7 @@ class GlideManager
             'defaults' => config('glide.defaults'),
             'presets' => config('glide.presets'),
             'max_image_size' => config('glide.max_image_size'),
+            'response' => new GlideResponseFactory(),
             'cache_path_callable' => function ($path, $params) {
                 return app(OptionsParser::class)->toString($params) . '/' . $path;
             },
