@@ -5,10 +5,8 @@ namespace VanOns\LaravelAttachmentLibrary\Glide;
 use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
-use League\Glide\Responses\PsrResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
-use Symfony\Component\HttpFoundation\File\Stream;
 
 class GlideManager
 {
