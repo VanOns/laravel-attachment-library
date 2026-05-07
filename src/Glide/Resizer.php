@@ -128,7 +128,13 @@ class Resizer
 
         // Return width based on image dimensions.
         if ($this->height) {
-            [$width, $height] = $this->getImageSize();
+            $imageSize = $this->getImageSize();
+
+            if (empty($imageSize)) {
+                return 0;
+            }
+
+            [$width, $height] = $imageSize;
 
             return !empty($height)
                 ? round($this->calculateHeight() / $height * $width)
@@ -155,7 +161,13 @@ class Resizer
 
         // Return height based on image dimensions.
         if ($this->width) {
-            [$width, $height] = $this->getImageSize();
+            $imageSize = $this->getImageSize();
+
+            if (empty($imageSize)) {
+                return 0;
+            }
+
+            [$width, $height] = $imageSize;
 
             return !empty($width)
                 ? round($this->calculateWidth() / $width * $height)
@@ -194,7 +206,13 @@ class Resizer
             return null;
         }
 
-        [$width, $height] = AttachmentManager::getImageSizes($file);
+        $imageSize = AttachmentManager::getImageSizes($file);
+
+        if (empty($imageSize)) {
+            return null;
+        }
+
+        [$width, $height] = $imageSize;
 
         return [$width, $height];
     }
