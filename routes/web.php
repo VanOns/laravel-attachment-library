@@ -11,6 +11,7 @@ Route::get('files/{attachment}', AttachmentController::class)
     ->name('attachment');
 
 Route::get('img/{preset}/{breakpoint}/{format}/{fit}/{path}', GlidePresetController::class)
+    ->whereIn('preset', array_keys(config('glide.presets', [])))
     ->where('path', '.*')
     ->middleware(['web'])
     ->name('glide.preset');
