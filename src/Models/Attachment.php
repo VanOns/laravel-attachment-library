@@ -29,6 +29,7 @@ use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
  * @property string $extension
  * @property string $filename
  * @property string $full_path
+ * @property string $metadata
  * @property string $mime_type
  * @property string $name
  * @property string $path
