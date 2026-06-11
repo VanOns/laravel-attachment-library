@@ -32,8 +32,9 @@ use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
  * @property string $mime_type
  * @property string $name
  * @property string $path
- * @property string $url
  * @property string $title
+ * @property ?string $type
+ * @property string $url
  * @property array|null $focal_point
  *
  * @mixin AttachmentQueryBuilder
