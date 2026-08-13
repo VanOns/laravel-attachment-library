@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Http\Controllers;
 
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use League\Glide\Filesystem\FileNotFoundException;
@@ -10,6 +11,7 @@ use League\Glide\Server;
 use Throwable;
 use Validator;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Glide\FitPresets;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
 class GlidePresetController
@@ -20,6 +22,11 @@ class GlidePresetController
             'preset' => ['required', Rule::in(array_keys(config('glide.presets')))],
             'format' => ['required', Rule::in(config('glide.formats'))],
             'breakpoint' => ['required', 'numeric', Rule::in(config('glide.breakpoints'))],
+            'fit' => ['required', function (string $attribute, mixed $value, Closure $fail) {
+                if (!is_string($value) || !FitPresets::isValidSegment($value)) {
+                    $fail("The {$attribute} is not a valid fit preset.");
+                }
+            }],
         ]);
 
         if ($validator->fails()) {
@@ -48,10 +55,11 @@ class GlidePresetController
     private function generateImage(string $preset, string $breakpoint, string $format, string $fit, string $path)
     {
         $attachment = $this->getAttachment($path);
-        $fit = $this->getFit($attachment);
+        $resolvedFit = FitPresets::resolve($fit, $attachment);
 
         $server = app(Server::class);
 
+        // Cache under the requested fit, so the URL matches the path the webserver serves from.
         $server->setCachePathCallable(function () use ($preset, $breakpoint, $format, $fit, $path) {
             return "{$preset}/{$breakpoint}/{$format}/{$fit}/{$path}";
         });
@@ -71,7 +79,7 @@ class GlidePresetController
 
         return $server->getImageResponse(
             $path,
-            [ ...$options, 'fm' => $format, 'fit' => $fit ]
+            [ ...$options, 'fm' => $format, 'fit' => $resolvedFit ]
         );
     }
 
@@ -86,20 +94,5 @@ class GlidePresetController
             ->where('name', $filename)
             ->where('extension', $extension)
             ->first();
-    }
-
-    private function getFit(?Attachment $attachment)
-    {
-        if (!$attachment) {
-            return 'crop';
-        }
-
-        if ($attachment->focal_point) {
-            $x = $attachment->focal_point['x'] ?? 50;
-            $y = $attachment->focal_point['y'] ?? 50;
-            return "crop-{$x}-{$y}";
-        }
-
-        return 'crop';
     }
 }

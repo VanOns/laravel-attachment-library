@@ -41,6 +41,16 @@ return [
         'video-half' => [ 'w' => 0.5, 'h' => 0.28125 ], // 16:9 ratio
     ],
 
+    /**
+     * The available fit presets for image resizing.
+     * The keys are used in the `{fit}` segment of preset image URLs, so they cannot contain
+     * slashes or special characters. The values must be a value of the Fit enum.
+     * When an attachment has a focal point, it takes priority over a preset that resolves to `crop`.
+     */
+    'fit_presets' => [
+        'crop' => 'crop-50-50',
+    ],
+
     'max_image_size' => 2160 * 2160,
 
     /**
