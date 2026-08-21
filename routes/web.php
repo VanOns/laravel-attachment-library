@@ -1,14 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use VanOns\LaravelAttachmentLibrary\Http\Controllers\AttachmentController;
 use VanOns\LaravelAttachmentLibrary\Http\Controllers\GlideController;
 use VanOns\LaravelAttachmentLibrary\Http\Controllers\GlidePresetController;
-
-Route::get('files/{attachment}', AttachmentController::class)
-    ->where('attachment', '.*')
-    ->middleware(['web'])
-    ->name('attachment');
 
 Route::get('img/{preset}/{breakpoint}/{format}/{fit}/{path}', GlidePresetController::class)
     ->whereIn('preset', array_keys(config('glide.presets', [])))
