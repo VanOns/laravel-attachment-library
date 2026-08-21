@@ -2,11 +2,15 @@ name: Run tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.php'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches-ignore:
       - 'dependabot/github_actions/*'
-      - 'dependabot/npm_and_yarn/*'
 
 env:
   PHP_VERSION: 8.2
