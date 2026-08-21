@@ -10,6 +10,14 @@ return [
     'disk' => env('ATTACHMENTS_DISK', 'public'),
 
     /**
+     * By default, the library will register a /files route to get the attachment URLs
+     * Setting this to true will remove this route and get the attachment URLs from the disk instead
+     *
+     * This does NOT affect the /img routes for glide
+     */
+    'serve_attachments_from_disk' => env('ATTACHMENTS_SERVE_FROM_DISK', false),
+
+    /**
      * Automatically sync storage files to the database when browsing directories.
      * Set to false to disable and trigger syncing manually via updateFiles().
      */
