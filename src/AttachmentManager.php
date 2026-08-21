@@ -197,7 +197,7 @@ class AttachmentManager
     {
         $placeholder = 'PLACEHOLDER';
         $baseUrlWithPlaceholder = config('attachment-library.serve_attachments_from_disk')
-            ? $baseUrlWithPlaceholder = Storage::disk($this->disk)->url($placeholder)
+            ? Storage::disk($this->disk)->url($placeholder)
             : route('attachment', ['attachment' => $placeholder]);
 
         // Remove the placeholder suffix from the generated route URL.
