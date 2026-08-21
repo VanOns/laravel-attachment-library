@@ -196,7 +196,9 @@ class AttachmentManager
     public function findByUrl(string $url): ?Attachment
     {
         $placeholder = 'PLACEHOLDER';
-        $baseUrlWithPlaceholder = Storage::disk($this->disk)->url($placeholder);
+        $baseUrlWithPlaceholder = config('attachment-library.serve_attachments_from_disk')
+            ? $baseUrlWithPlaceholder = Storage::disk($this->disk)->url($placeholder)
+            : route('attachment', ['attachment' => $placeholder]);
 
         // Remove the placeholder suffix from the generated route URL.
         if (Str::endsWith($baseUrlWithPlaceholder, $placeholder)) {
@@ -450,7 +452,9 @@ class AttachmentManager
      */
     public function getUrl(Attachment $file): string|bool
     {
-        return Storage::disk($file->disk)->url($file->full_path);
+        return config('attachment-library.serve_attachments_from_disk')
+            ? Storage::disk($file->disk)->url($file->full_path)
+            : route('attachment', ['attachment' => $file->full_path]);
     }
 
     /**
