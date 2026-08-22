@@ -34,7 +34,7 @@ class FitPresets
     public static function resolve(string $segment, ?Attachment $attachment = null): string
     {
         $preset = Config::get('glide.fit_presets', [])[$segment] ?? null;
-        $fit = $preset ?? Fit::CROP->value;
+        $fit = self::isValidFitValue($preset) ? $preset : Fit::CROP->value;
 
         if (Str::startsWith($fit, 'crop') && $attachment?->focal_point) {
             $x = $attachment->focal_point['x'] ?? 50;
@@ -44,5 +44,14 @@ class FitPresets
         }
 
         return $fit;
+    }
+
+    /**
+     * Check whether a configured preset value is a real Fit or a legacy focal point crop.
+     */
+    private static function isValidFitValue(?string $value): bool
+    {
+        return $value !== null
+            && (Fit::tryFrom($value) !== null || preg_match(self::FOCAL_POINT_PATTERN, $value) === 1);
     }
 }
