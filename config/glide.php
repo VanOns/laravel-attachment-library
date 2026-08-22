@@ -48,7 +48,7 @@ return [
      * When an attachment has a focal point, it takes priority over a preset that resolves to `crop`.
      */
     'fit_presets' => [
-        'crop' => 'crop-50-50',
+        'crop' => \VanOns\LaravelAttachmentLibrary\Enums\Fit::CROP->value,
     ],
 
     'max_image_size' => 2160 * 2160,
