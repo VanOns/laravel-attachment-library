@@ -12,12 +12,25 @@ on:
     branches-ignore:
       - 'dependabot/github_actions/*'
 
-env:
-  PHP_VERSION: 8.2
-
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    name: 'Test: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ 8.2, 8.3, 8.4 ]
+        laravel: [ 11.*, 12.*, 13.* ]
+        stability: [ prefer-lowest, prefer-stable ]
+        include:
+          - laravel: 11.*
+            testbench: ^9.0
+          - laravel: 12.*
+            testbench: ^10.0
+          - laravel: 13.*
+            testbench: ^11.0
 
     steps:
       - name: 📄 Clone repository
@@ -26,23 +39,44 @@ jobs:
       - name: ⚙️Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.PHP_VERSION }}
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: ⚙️Set up problem matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: 🔑 Configure Composer authentication
         run: |
           composer config github-oauth.github.com ${{ secrets.TOKEN_GITHUB }}
 
-      - name: ✨ Get Composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - name: ⬇️Install Composer dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} -W --prefer-dist --no-progress --no-ansi --no-interaction
 
-      - name: 📦 Set up Composer dependency caching
-        uses: actions/cache@v6
+      - name: 🧪 Run tests
+        run: composer run test
+
+  analyse:
+    runs-on: ubuntu-latest
+    name: Analyse
+
+    steps:
+      - name: 📄 Clone repository
+        uses: actions/checkout@v7
+
+      - name: ⚙️Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          php-version: 8.2
+          coverage: none
+
+      - name: 🔑 Configure Composer authentication
+        run: |
+          composer config github-oauth.github.com ${{ secrets.TOKEN_GITHUB }}
 
       - name: ⬇️Install Composer dependencies
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-ansi --no-interaction --optimize-autoloader
