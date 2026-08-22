@@ -37,7 +37,7 @@ it('has files after creating them', function () {
 
 it('uploads a file', function () {
     $attachmentManager = new AttachmentManager();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     expect($attachmentManager->files(null))->toBeEmpty();
     expect(Attachment::whereDisk('test')->wherePath(null)->get())->toBeEmpty();
@@ -50,7 +50,7 @@ it('uploads a file', function () {
 
 it('uploads multiple files', function () {
     $attachmentManager = new AttachmentManager();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     expect($attachmentManager->files(null))->toBeEmpty();
     expect(Attachment::whereDisk('test')->wherePath(null)->get())->toBeEmpty();
@@ -60,7 +60,7 @@ it('uploads multiple files', function () {
     expect($attachmentManager->files(null))->toHaveCount(1);
     expect(Attachment::whereDisk('test')->wherePath(null)->get())->toHaveCount(1);
 
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->upload($file, null);
 
@@ -70,7 +70,7 @@ it('uploads multiple files', function () {
 
 it('deletes a file', function () {
     $attachmentManager = new AttachmentManager();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachment = $attachmentManager->upload($file, null);
 
@@ -84,9 +84,9 @@ it('deletes a file', function () {
 
 it('moves a file', function () {
     $attachmentManager = new AttachmentManager();
-    $path = fake()->word();
+    $path = fake()->unique()->word();
 
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
     $attachmentManager->createDirectory($path);
     $attachment = $attachmentManager->upload($file, null);
 
@@ -101,8 +101,8 @@ it('moves a file', function () {
 
 it('renames a file', function () {
     $attachmentManager = new AttachmentManager();
-    $fileNameA = fake()->word() . '.jpg';
-    $fileNameB = fake()->word();
+    $fileNameA = fake()->unique()->word() . '.jpg';
+    $fileNameB = fake()->unique()->word();
     $file = UploadedFile::fake()->image($fileNameA);
 
     $attachment = $attachmentManager->upload($file, null);
@@ -120,8 +120,8 @@ it('has no directories when empty', function () {
 
 it('has directories after creating them', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryNameA = fake()->word();
-    $directoryNameB = fake()->word();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
 
     $directoryA = $attachmentManager->createDirectory($directoryNameA);
 
@@ -136,7 +136,7 @@ it('has directories after creating them', function () {
 
 it('creates a directory', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryName = fake()->word();
+    $directoryName = fake()->unique()->word();
 
     $directory = $attachmentManager->createDirectory($directoryName);
 
@@ -145,7 +145,7 @@ it('creates a directory', function () {
 
 it('removes a directory', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryName = fake()->word();
+    $directoryName = fake()->unique()->word();
 
     $attachmentManager->createDirectory($directoryName);
 
@@ -158,8 +158,8 @@ it('removes a directory', function () {
 
 it('removes a directory with files', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryName = fake()->word();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $directoryName = fake()->unique()->word();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->createDirectory($directoryName);
     $attachmentManager->upload($file, $directoryName);
@@ -175,8 +175,8 @@ it('removes a directory with files', function () {
 
 it('renames a directory', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryNameA = fake()->word();
-    $directoryNameB = fake()->word();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
 
     $directoryA = $attachmentManager->createDirectory($directoryNameA);
 
@@ -189,9 +189,9 @@ it('renames a directory', function () {
 
 it('renames a directory with files', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryNameA = fake()->word();
-    $directoryNameB = fake()->word();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->createDirectory($directoryNameA);
     $attachment = $attachmentManager->upload($file, $directoryNameA);
@@ -206,7 +206,7 @@ it('renames a directory with files', function () {
 
 it('prevents a duplicate on upload', function () {
     $attachmentManager = new AttachmentManager();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->upload($file, null);
     $attachmentManager->upload($file, null);
@@ -214,9 +214,9 @@ it('prevents a duplicate on upload', function () {
 
 it('prevents a duplicate on file rename', function () {
     $attachmentManager = new AttachmentManager();
-    $fileName = fake()->word();
+    $fileName = fake()->unique()->word();
     $fileA = UploadedFile::fake()->image("{$fileName}.jpg");
-    $fileB = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $fileB = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->upload($fileA, null);
     $attachment = $attachmentManager->upload($fileB, null);
@@ -226,10 +226,10 @@ it('prevents a duplicate on file rename', function () {
 
 it('prevents a duplicate on file move', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryName = fake()->word();
+    $directoryName = fake()->unique()->word();
     $attachmentManager->createDirectory($directoryName);
 
-    $fileName = fake()->word() . '.jpg';
+    $fileName = fake()->unique()->word() . '.jpg';
     $fileA = UploadedFile::fake()->image($fileName);
     $attachmentManager->upload($fileA, $directoryName);
 
@@ -241,8 +241,8 @@ it('prevents a duplicate on file move', function () {
 
 it('prevents a duplicate on directory rename', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryNameA = fake()->word();
-    $directoryNameB = fake()->word();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
 
     $attachmentManager->createDirectory($directoryNameA);
     $attachmentManager->createDirectory($directoryNameB);
@@ -252,7 +252,7 @@ it('prevents a duplicate on directory rename', function () {
 
 it('prevents a duplicate on directory create', function () {
     $attachmentManager = new AttachmentManager();
-    $directoryNameA = fake()->word();
+    $directoryNameA = fake()->unique()->word();
 
     $attachmentManager->createDirectory($directoryNameA);
     $attachmentManager->createDirectory($directoryNameA);
@@ -260,7 +260,7 @@ it('prevents a duplicate on directory create', function () {
 
 it('resolves the url', function () {
     $attachmentManager = new AttachmentManager();
-    $fileName = fake()->word() . '.jpg';
+    $fileName = fake()->unique()->word() . '.jpg';
     $file = UploadedFile::fake()->image($fileName);
 
     $attachment = $attachmentManager->upload($file, null);
@@ -270,7 +270,7 @@ it('resolves the url', function () {
 
 it('resolves the absolute path', function () {
     $attachmentManager = new AttachmentManager();
-    $fileName = fake()->word() . '.jpg';
+    $fileName = fake()->unique()->word() . '.jpg';
     $file = UploadedFile::fake()->image($fileName);
 
     $attachment = $attachmentManager->upload($file, null);
@@ -280,12 +280,12 @@ it('resolves the absolute path', function () {
 
 it('determines the attachment type', function () {
     $attachmentManager = new AttachmentManager();
-    $fileNameA = fake()->word() . '.jpg';
+    $fileNameA = fake()->unique()->word() . '.jpg';
     $fileA = UploadedFile::fake()->image($fileNameA);
 
     $attachmentA = $attachmentManager->upload($fileA, null);
 
-    $fileNameB = fake()->word() . '.txt';
+    $fileNameB = fake()->unique()->word() . '.txt';
     $fileB = UploadedFile::fake()->create($fileNameB);
 
     $attachmentB = $attachmentManager->upload($fileB, null);
@@ -296,11 +296,11 @@ it('determines the attachment type', function () {
 
 it('checks whether a destination exists', function () {
     $attachmentManager = new AttachmentManager();
-    $fileName = fake()->word() . '.jpg';
+    $fileName = fake()->unique()->word() . '.jpg';
     $file = UploadedFile::fake()->image($fileName);
     $attachmentManager->upload($file, null);
 
-    $directoryName = fake()->word();
+    $directoryName = fake()->unique()->word();
     $attachmentManager->createDirectory($directoryName);
     $attachmentManager->upload($file, $directoryName);
 
@@ -315,13 +315,13 @@ it('checks whether a destination exists', function () {
 
 it('resets the file list when switching disks', function () {
     $attachmentManager = new AttachmentManager();
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachmentManager->upload($file, null);
 
     expect($attachmentManager->files(null))->not->toBeEmpty();
 
-    $attachmentManager->setDisk(fake()->word());
+    $attachmentManager->setDisk(fake()->unique()->word());
 
     expect($attachmentManager->files(null))->toBeEmpty();
 });
@@ -356,7 +356,7 @@ it('rejects a disallowed character on file rename', function (string $name, bool
         $this->expectException(DisallowedCharacterException::class);
     }
 
-    $file = UploadedFile::fake()->image(fake()->word() . '.jpg');
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
     $attachment = $attachmentManager->upload($file, null);
 
@@ -416,7 +416,7 @@ it('rejects a disallowed character on directory path', function (string $name, b
 
 it('requires a parent directory', function () {
     $attachmentManager = new AttachmentManager();
-    $path = fake()->word() . '/' . fake()->word();
+    $path = fake()->unique()->word() . '/' . fake()->unique()->word();
 
     $attachmentManager->createDirectory($path);
 })->throws(NoParentDirectoryException::class);
