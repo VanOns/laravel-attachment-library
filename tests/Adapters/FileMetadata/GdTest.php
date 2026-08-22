@@ -1,9 +1,5 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test\Adapters\FileMetadata;
-
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -12,85 +8,53 @@ use VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
-use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
-class GdTest extends TestCase
-{
-    use RefreshDatabase;
-    use WithFaker;
+beforeEach(function () {
+    Storage::fake('test');
+    Config::set('attachment-library.disk', 'test');
+});
 
-    public function testAssertTextFile()
-    {
-        Storage::fake('test');
-        Config::set('attachment-library.disk', 'test');
+it('returns false for a text file', function () {
+    $file = AttachmentManager::setDisk('test')->upload(
+        UploadedFile::fake()->image('test.txt')
+    );
 
-        $file = AttachmentManager::setDisk('test')->upload(
-            UploadedFile::fake()->image('test.txt')
-        );
+    $gd = new Gd();
+    expect($gd->getMetadata($file))->toBeFalse();
+});
 
-        $gd = new Gd();
-        $this->assertFalse($gd->getMetadata($file));
-    }
+it('returns metadata for a valid image file', function () {
+    $file = AttachmentManager::setDisk('test')->upload(
+        UploadedFile::fake()->image('test.jpg')
+    );
 
-    public function testAssertValidFile()
-    {
-        Storage::fake('test');
-        Config::set('attachment-library.disk', 'test');
+    $gd = new Gd();
+    expect($gd->getMetadata($file))->toEqual(
+        new FileMetadata('10', '10', bits: 8, channels: 3)
+    );
+});
 
-        $file = AttachmentManager::setDisk('test')->upload(
-            UploadedFile::fake()->image('test.jpg')
-        );
+it('returns false for a non-existing path', function () {
+    $file = Attachment::factory()->make();
 
-        $gd = new Gd();
-        $this->assertEquals(
-            new FileMetadata('10', '10', bits: 8, channels: 3),
-            $gd->getMetadata($file)
-        );
-    }
+    $gd = new Gd();
+    expect($gd->getMetadata($file))->toBeFalse();
+});
 
-    public function testAssertNonExistingPath()
-    {
-        Storage::fake('test');
-        Config::set('attachment-library.disk', 'test');
+it('caches the resolved metadata', function () {
+    $file = AttachmentManager::setDisk('test')->upload(
+        UploadedFile::fake()->image('test.jpg')
+    );
 
-        $file = Attachment::factory()->make();
+    $cacheKey = implode('-', ['metadata-adapter', hash('sha256', $file->absolute_path)]);
 
-        $gd = new Gd();
-        $this->assertFalse($gd->getMetadata($file));
-    }
+    $gd = new Gd();
 
-    public function testAssertCache()
-    {
-        Storage::fake('test');
-        Config::set('attachment-library.disk', 'test');
+    expect(Cache::get($cacheKey))->toBeEmpty();
 
-        $file = AttachmentManager::setDisk('test')->upload(
-            UploadedFile::fake()->image('test.jpg')
-        );
+    $gd->getMetadata($file);
 
-        $cacheKey = implode('-', ['metadata-adapter', hash('sha256', $file->absolute_path)]);
-
-        $gd = new Gd();
-
-        $this->assertEmpty(Cache::get($cacheKey));
-
-        $gd->getMetadata($file);
-
-        $this->assertEquals(
-            new FileMetadata('10', '10', bits: 8, channels: 3),
-            Cache::get($cacheKey)
-        );
-    }
-
-    protected function afterRefreshingDatabase(): void
-    {
-        $migrations = [
-            require (__DIR__.'/../../../database/migrations/create_attachments_table.php.stub'),
-            require (__DIR__.'/../../../database/migrations/create_attachables_table.php.stub'),
-        ];
-
-        foreach ($migrations as $migration) {
-            $migration->up();
-        }
-    }
-}
+    expect(Cache::get($cacheKey))->toEqual(
+        new FileMetadata('10', '10', bits: 8, channels: 3)
+    );
+});

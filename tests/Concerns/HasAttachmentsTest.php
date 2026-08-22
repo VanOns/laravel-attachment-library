@@ -1,64 +1,41 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test\Concerns;
-
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Test\Fixtures\Post;
-use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
-class HasAttachmentsTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function () {
+    Schema::create('posts', function (Blueprint $table) {
+        $table->id();
+        $table->string('title');
+        $table->timestamps();
+    });
+});
 
-    public function testAttachmentsAreReturnedInPivotOrder()
-    {
-        $post = Post::create(['title' => 'Hello world']);
-        $first = Attachment::factory()->create();
-        $second = Attachment::factory()->create();
+it('returns attachments in pivot order', function () {
+    $post = Post::create(['title' => 'Hello world']);
+    $first = Attachment::factory()->create();
+    $second = Attachment::factory()->create();
 
-        $post->attachments()->attach($second->id, ['order' => 0]);
-        $post->attachments()->attach($first->id, ['order' => 1]);
+    $post->attachments()->attach($second->id, ['order' => 0]);
+    $post->attachments()->attach($first->id, ['order' => 1]);
 
-        $ids = $post->attachments()->pluck('attachments.id')->all();
+    $ids = $post->attachments()->pluck('attachments.id')->all();
 
-        $this->assertSame([$second->id, $first->id], $ids);
-    }
+    expect($ids)->toBe([$second->id, $first->id]);
+});
 
-    public function testAttachmentCollectionFiltersByPivotCollection()
-    {
-        $post = Post::create(['title' => 'Hello world']);
-        $hero = Attachment::factory()->create();
-        $gallery = Attachment::factory()->create();
+it('filters the attachment collection by pivot collection', function () {
+    $post = Post::create(['title' => 'Hello world']);
+    $hero = Attachment::factory()->create();
+    $gallery = Attachment::factory()->create();
 
-        $post->attachments()->attach($hero->id, ['collection' => 'hero']);
-        $post->attachments()->attach($gallery->id, ['collection' => 'gallery']);
+    $post->attachments()->attach($hero->id, ['collection' => 'hero']);
+    $post->attachments()->attach($gallery->id, ['collection' => 'gallery']);
 
-        $collection = $post->attachmentCollection('gallery')->get();
+    $collection = $post->attachmentCollection('gallery')->get();
 
-        $this->assertCount(1, $collection);
-        $this->assertSame($gallery->id, $collection->first()->id);
-    }
-
-    protected function afterRefreshingDatabase(): void
-    {
-        $migrations = [
-            require(__DIR__ . '/../../database/migrations/create_attachments_table.php.stub'),
-            require(__DIR__ . '/../../database/migrations/create_attachables_table.php.stub'),
-            require(__DIR__ . '/../../database/migrations/add_collection_to_attachables_table.php.stub'),
-            require(__DIR__ . '/../../database/migrations/add_order_to_attachables_table.php.stub'),
-        ];
-
-        foreach ($migrations as $migration) {
-            $migration->up();
-        }
-
-        Schema::create('posts', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->timestamps();
-        });
-    }
-}
+    expect($collection)->toHaveCount(1);
+    expect($collection->first()->id)->toBe($gallery->id);
+});
