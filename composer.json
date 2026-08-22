@@ -30,7 +30,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
-        "larastan/larastan": "^2.9",
+        "larastan/larastan": "^3.0",
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "phpunit/phpunit": "^10.1"
     },
