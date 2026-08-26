@@ -466,6 +466,14 @@ class AttachmentManager
     }
 
     /**
+     * Check if the file of the given attachment still exists on its disk.
+     */
+    public function fileExists(Attachment $file): bool
+    {
+        return Storage::disk($file->disk)->exists($file->full_path);
+    }
+
+    /**
      * Return contents of attachment.
      */
     public function getContents(Attachment $file): ?string
@@ -564,6 +572,11 @@ class AttachmentManager
                     $metaData = stream_get_meta_data($tmpFile);
                     fwrite($tmpFile, $contents);
                     $path = $metaData['uri'];
+                }
+
+                // Handle files that can't be read.
+                if (!is_file($path) || !is_readable($path) || filesize($path) === 0) {
+                    return null;
                 }
 
                 return getimagesize($path) ?: null;
