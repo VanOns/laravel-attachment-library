@@ -106,6 +106,14 @@ class Attachment extends Model
     }
 
     /**
+     * Check if the file still exists on the disk.
+     */
+    public function fileExists(): bool
+    {
+        return AttachmentManager::fileExists($this);
+    }
+
+    /**
      * Return contents of attachment.
      */
     public function getContents(): ?string
