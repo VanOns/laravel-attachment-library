@@ -1,10 +1,6 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test;
-
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -18,511 +14,409 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
-class AttachmentManagerTest extends TestCase
-{
-    use RefreshDatabase;
-    use WithFaker;
+beforeEach(function () {
+    Storage::fake('test');
 
-    protected static string $disk = 'test';
+    Config::set('attachment-library.disk', 'test');
+    Config::set('attachment-library.attachment_mime_type_mapping', [
+        AttachmentType::PREVIEWABLE_IMAGE => ['image/jpeg'],
+    ]);
 
-    protected static ?AttachmentManager $attachmentManager;
+    $this->be(new User());
+});
 
-    public static function fileNameProvider(): array
-    {
-        return [
+it('has no files when empty', function () {
+    expect((new AttachmentManager())->files(null))->toBeEmpty();
+});
 
-            // Valid file names.
-            ['test.jpg', false],
-            ['t-est.jpg', false],
-            ['t_est.jpg', false],
-            ['tést.jpg', false],
-            ['.env', false],
-            ['.jpg', false],
-            ['test', false],
-            ['诶.jpg', false],
-            ['t est.jpg', false],
-            ['t est.jpg', false], // Non-breaking space.
+it('has files after creating them', function () {
+    Attachment::factory()->count(10)->create();
 
-            // Invalid file names.
-            ['t!est.jpg', true],
-            ['t/est.jpg', true],
-            ['t/est.jpg', true],
-            ["te\ts/t.jpg", true],
-            ["te\ns/t.jpg", true],
-            ['🐄.jpg', true],
-            ["'test'.jpg", true],
-            ['.jpg', true], // null.
+    expect((new AttachmentManager())->files(null))->toHaveCount(10);
+});
 
-        ];
+it('uploads a file', function () {
+    $attachmentManager = new AttachmentManager();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    expect($attachmentManager->files(null))->toBeEmpty();
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toBeEmpty();
+
+    $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->files(null))->toHaveCount(1);
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toHaveCount(1);
+});
+
+it('uploads multiple files', function () {
+    $attachmentManager = new AttachmentManager();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    expect($attachmentManager->files(null))->toBeEmpty();
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toBeEmpty();
+
+    $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->files(null))->toHaveCount(1);
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toHaveCount(1);
+
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->files(null))->toHaveCount(2);
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toHaveCount(2);
+});
+
+it('deletes a file', function () {
+    $attachmentManager = new AttachmentManager();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachment = $attachmentManager->upload($file, null);
+
+    expect(Attachment::find($attachment->id)->get())->toEqual($attachmentManager->files(null));
+
+    $attachmentManager->delete($attachment);
+
+    expect($attachmentManager->files(null))->toBeEmpty();
+    expect(Attachment::whereDisk('test')->wherePath(null)->get())->toBeEmpty();
+});
+
+it('moves a file', function () {
+    $attachmentManager = new AttachmentManager();
+    $path = fake()->unique()->word();
+
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+    $attachmentManager->createDirectory($path);
+    $attachment = $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->files(null))->not->toBeEmpty();
+    expect($attachmentManager->files($path))->toBeEmpty();
+
+    $attachmentManager->move($attachment, $path);
+
+    expect($attachmentManager->files(null))->toBeEmpty();
+    expect($attachmentManager->files($path))->not->toBeEmpty();
+});
+
+it('renames a file', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileNameA = fake()->unique()->word() . '.jpg';
+    $fileNameB = fake()->unique()->word();
+    $file = UploadedFile::fake()->image($fileNameA);
+
+    $attachment = $attachmentManager->upload($file, null);
+
+    expect($attachment->filename)->toBe($fileNameA);
+
+    $attachmentManager->rename($attachment, $fileNameB);
+
+    expect($attachment->filename)->toBe("{$fileNameB}.jpg");
+});
+
+it('has no directories when empty', function () {
+    expect((new AttachmentManager())->directories())->toBeEmpty();
+});
+
+it('has directories after creating them', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
+
+    $directoryA = $attachmentManager->createDirectory($directoryNameA);
+
+    expect($attachmentManager->directories())->toEqual(new Collection([$directoryA]));
+
+    $directoryB = $attachmentManager->createDirectory($directoryNameB);
+
+    expect($attachmentManager->directories()->all())->toEqualCanonicalizing(
+        (new Collection([$directoryA, $directoryB]))->all()
+    );
+});
+
+it('creates a directory', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryName = fake()->unique()->word();
+
+    $directory = $attachmentManager->createDirectory($directoryName);
+
+    expect($attachmentManager->directories())->toEqual(new Collection([$directory]));
+});
+
+it('removes a directory', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryName = fake()->unique()->word();
+
+    $attachmentManager->createDirectory($directoryName);
+
+    expect($attachmentManager->directories())->not->toBeEmpty();
+
+    $attachmentManager->deleteDirectory($directoryName);
+
+    expect($attachmentManager->directories())->toBeEmpty();
+});
+
+it('removes a directory with files', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryName = fake()->unique()->word();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->createDirectory($directoryName);
+    $attachmentManager->upload($file, $directoryName);
+
+    expect($attachmentManager->directories())->not->toBeEmpty();
+    expect($attachmentManager->files($directoryName))->not->toBeEmpty();
+
+    $attachmentManager->deleteDirectory($directoryName);
+
+    expect($attachmentManager->directories())->toBeEmpty();
+    expect($attachmentManager->files($directoryName))->toBeEmpty();
+});
+
+it('renames a directory', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
+
+    $directoryA = $attachmentManager->createDirectory($directoryNameA);
+
+    expect($attachmentManager->directories())->toEqual(new Collection([$directoryA]));
+
+    $directoryB = $attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
+
+    expect($attachmentManager->directories())->toEqual(new Collection([$directoryB]));
+});
+
+it('renames a directory with files', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->createDirectory($directoryNameA);
+    $attachment = $attachmentManager->upload($file, $directoryNameA);
+
+    expect($attachment->path)->toBe($directoryNameA);
+
+    $attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
+
+    $attachment->refresh();
+    expect($attachment->path)->toBe($directoryNameB);
+});
+
+it('prevents a duplicate on upload', function () {
+    $attachmentManager = new AttachmentManager();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->upload($file, null);
+    $attachmentManager->upload($file, null);
+})->throws(DestinationAlreadyExistsException::class);
+
+it('prevents a duplicate on file rename', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileName = fake()->unique()->word();
+    $fileA = UploadedFile::fake()->image("{$fileName}.jpg");
+    $fileB = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->upload($fileA, null);
+    $attachment = $attachmentManager->upload($fileB, null);
+
+    $attachmentManager->rename($attachment, $fileName);
+})->throws(DestinationAlreadyExistsException::class);
+
+it('prevents a duplicate on file move', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryName = fake()->unique()->word();
+    $attachmentManager->createDirectory($directoryName);
+
+    $fileName = fake()->unique()->word() . '.jpg';
+    $fileA = UploadedFile::fake()->image($fileName);
+    $attachmentManager->upload($fileA, $directoryName);
+
+    $fileB = UploadedFile::fake()->image($fileName);
+    $attachment = $attachmentManager->upload($fileB, null);
+
+    $attachmentManager->move($attachment, $directoryName);
+})->throws(DestinationAlreadyExistsException::class);
+
+it('prevents a duplicate on directory rename', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryNameA = fake()->unique()->word();
+    $directoryNameB = fake()->unique()->word();
+
+    $attachmentManager->createDirectory($directoryNameA);
+    $attachmentManager->createDirectory($directoryNameB);
+
+    $attachmentManager->renameDirectory($directoryNameB, $directoryNameA);
+})->throws(DestinationAlreadyExistsException::class);
+
+it('prevents a duplicate on directory create', function () {
+    $attachmentManager = new AttachmentManager();
+    $directoryNameA = fake()->unique()->word();
+
+    $attachmentManager->createDirectory($directoryNameA);
+    $attachmentManager->createDirectory($directoryNameA);
+})->throws(DestinationAlreadyExistsException::class);
+
+it('resolves the url', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileName = fake()->unique()->word() . '.jpg';
+    $file = UploadedFile::fake()->image($fileName);
+
+    $attachment = $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->getUrl(Attachment::find($attachment->id)))->toBe(url("/files/{$fileName}"));
+});
+
+it('resolves the absolute path', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileName = fake()->unique()->word() . '.jpg';
+    $file = UploadedFile::fake()->image($fileName);
+
+    $attachment = $attachmentManager->upload($file, null);
+
+    expect($attachment->absolute_path)->toBe(Storage::disk('test')->path($fileName));
+});
+
+it('determines the attachment type', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileNameA = fake()->unique()->word() . '.jpg';
+    $fileA = UploadedFile::fake()->image($fileNameA);
+
+    $attachmentA = $attachmentManager->upload($fileA, null);
+
+    $fileNameB = fake()->unique()->word() . '.txt';
+    $fileB = UploadedFile::fake()->create($fileNameB);
+
+    $attachmentB = $attachmentManager->upload($fileB, null);
+
+    expect($attachmentManager->isType($attachmentA, AttachmentType::PREVIEWABLE_IMAGE))->toBeTrue();
+    expect($attachmentManager->isType($attachmentB, AttachmentType::PREVIEWABLE_IMAGE))->toBeFalse();
+});
+
+it('checks whether a destination exists', function () {
+    $attachmentManager = new AttachmentManager();
+    $fileName = fake()->unique()->word() . '.jpg';
+    $file = UploadedFile::fake()->image($fileName);
+    $attachmentManager->upload($file, null);
+
+    $directoryName = fake()->unique()->word();
+    $attachmentManager->createDirectory($directoryName);
+    $attachmentManager->upload($file, $directoryName);
+
+    expect($attachmentManager->destinationExists($fileName))->toBeTrue();
+    expect($attachmentManager->destinationExists($directoryName))->toBeTrue();
+    expect($attachmentManager->destinationExists("{$directoryName}/{$fileName}"))->toBeTrue();
+
+    expect($attachmentManager->destinationExists('test.jpg'))->toBeFalse();
+    expect($attachmentManager->destinationExists('test'))->toBeFalse();
+    expect($attachmentManager->destinationExists('test/test.jpg'))->toBeFalse();
+});
+
+it('resets the file list when switching disks', function () {
+    $attachmentManager = new AttachmentManager();
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
+
+    $attachmentManager->upload($file, null);
+
+    expect($attachmentManager->files(null))->not->toBeEmpty();
+
+    $attachmentManager->setDisk(fake()->unique()->word());
+
+    expect($attachmentManager->files(null))->toBeEmpty();
+});
+
+it('rejects an incompatible model class mapping', function (string $config) {
+    $mock = new class () {
+    };
+
+    Config::set($config, $mock::class);
+
+    new AttachmentManager();
+})->with([
+    ['attachment-library.class_mapping.attachment'],
+    ['attachment-library.class_mapping.directory'],
+])->throws(IncompatibleClassMappingException::class);
+
+it('accepts a compatible model class mapping', function (string $config, object $mock) {
+    $this->expectNotToPerformAssertions();
+
+    Config::set($config, $mock::class);
+
+    new AttachmentManager();
+})->with([
+    ['attachment-library.class_mapping.attachment', new class () extends Attachment {
+    }],
+]);
+
+it('rejects a disallowed character on file rename', function (string $name, bool $expectsException) {
+    $attachmentManager = new AttachmentManager();
+
+    if ($expectsException) {
+        $this->expectException(DisallowedCharacterException::class);
     }
 
-    public static function pathProvider(): array
-    {
-        return [
+    $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
 
-            // Valid paths.
-            ['test/test', false],
-            ['t-est', false],
-            ['t_est', false],
-            ['tést', false],
-            ['诶', false],
-            ['test/.test', false],
-            ['.test/test', false],
-            ['test', false],
-            ['test/t est', false],
-            ['test/t est/test', false], // Non-breaking space.
+    $attachment = $attachmentManager->upload($file, null);
 
-            // Invalid paths.
-            ['test/t!est', true],
-            ['test/t!est/t!est', true],
-            ["te\tst/test", true],
-            ["te\nst/test", true],
-            ["te\ns!t/test", true],
-            ['test/🐄', true],
-            ["'test'/test", true],
-            ['test/', true], // null.
+    $attachmentManager->rename($attachment, $name);
 
-        ];
+    expect($attachment->name)->toBe($name);
+})->with([
+    ['test.jpg', false],
+    ['t-est.jpg', false],
+    ['t_est.jpg', false],
+    ['tést.jpg', false],
+    ['.env', false],
+    ['.jpg', false],
+    ['test', false],
+    ['诶.jpg', false],
+    ['t est.jpg', false],
+    ['t est.jpg', false], // Non-breaking space.
+    ['t!est.jpg', true],
+    ['t/est.jpg', true],
+    ['t/est.jpg', true],
+    ["te\ts/t.jpg", true],
+    ["te\ns/t.jpg", true],
+    ['🐄.jpg', true],
+    ["'test'.jpg", true],
+    ["\u{E000}.jpg", true], // Private-use-area character renders as invisible.
+]);
+
+it('rejects a disallowed character on directory path', function (string $name, bool $expectsException) {
+    $attachmentManager = new AttachmentManager();
+
+    if ($expectsException) {
+        $this->expectException(DisallowedCharacterException::class);
     }
 
-    public function testAssertFilesEmpty()
-    {
-        $this->assertEmpty(self::$attachmentManager->files(null));
-    }
-
-    public function testAssertFilesNotEmpty()
-    {
-        Attachment::factory()->count(10)->create();
-
-        $this->assertCount(10, self::$attachmentManager->files(null));
-    }
-
-    public function testAssertUploadFile()
-    {
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        $this->assertEmpty(self::$attachmentManager->files(null));
-        $this->assertEmpty(Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-
-        self::$attachmentManager->upload($file, null);
-
-        $this->assertCount(1, self::$attachmentManager->files(null));
-        $this->assertCount(1, Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-    }
-
-    public function testAssertUploadMultipleFiles()
-    {
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        $this->assertEmpty(self::$attachmentManager->files(null));
-        $this->assertEmpty(Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-
-        self::$attachmentManager->upload($file, null);
-
-        $this->assertCount(1, self::$attachmentManager->files(null));
-        $this->assertCount(1, Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->upload($file, null);
-
-        $this->assertCount(2, self::$attachmentManager->files(null));
-        $this->assertCount(2, Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-    }
-
-    public function testAssertDeleteFile()
-    {
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        $this->assertEquals(Attachment::find($attachment->id)->get(), self::$attachmentManager->files(null));
-
-        self::$attachmentManager->delete($attachment);
-
-        $this->assertEmpty(self::$attachmentManager->files(null));
-        $this->assertEmpty(Attachment::whereDisk(self::$disk)->wherePath(null)->get());
-    }
-
-    public function testAssertMoveFile()
-    {
-        $path = $this->faker->firstName;
-
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-        self::$attachmentManager->createDirectory($path);
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        $this->assertNotEmpty(self::$attachmentManager->files(null));
-        $this->assertEmpty(self::$attachmentManager->files($path));
-
-        self::$attachmentManager->move($attachment, $path);
-
-        $this->assertEmpty(self::$attachmentManager->files(null));
-        $this->assertNotEmpty(self::$attachmentManager->files($path));
-    }
-
-    public function testAssertRenameFile()
-    {
-        $fileNameA = "{$this->faker->firstName}.jpg";
-        $fileNameB = "{$this->faker->firstName}";
-        $file = UploadedFile::fake()->image($fileNameA);
-
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        self::assertEquals($attachment->filename, $fileNameA);
-
-        self::$attachmentManager->rename($attachment, $fileNameB);
-
-        self::assertEquals($attachment->filename, "{$fileNameB}.jpg");
-    }
-
-    public function testAssertDirectoriesEmpty()
-    {
-        $this->assertEmpty(self::$attachmentManager->directories());
-    }
-
-    public function testAssertDirectoriesNotEmpty()
-    {
-        $directoryNameA = $this->faker->firstName();
-        $directoryNameB = $this->faker->firstName();
-
-        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
-
-        $this->assertEquals(
-            new Collection([$directoryA]),
-            self::$attachmentManager->directories()
-        );
-
-        $directoryB = self::$attachmentManager->createDirectory($directoryNameB);
-
-        $this->assertEqualsCanonicalizing(
-            new Collection([$directoryA, $directoryB]),
-            self::$attachmentManager->directories()
-        );
-    }
-
-    public function testAssertCreateDirectory()
-    {
-        $directoryName = $this->faker->firstName();
-
-        $directory = self::$attachmentManager->createDirectory($directoryName);
-
-        $this->assertEquals(
-            new Collection([$directory]),
-            self::$attachmentManager->directories()
-        );
-    }
-
-    public function testAssertRemoveDirectory()
-    {
-        $directoryName = $this->faker->firstName();
-
-        self::$attachmentManager->createDirectory($directoryName);
-
-        $this->assertNotEmpty(self::$attachmentManager->directories());
-
-        self::$attachmentManager->deleteDirectory($directoryName);
-
-        $this->assertEmpty(self::$attachmentManager->directories());
-    }
-
-    public function testAssertRemoveDirectoryWithFiles()
-    {
-        $directoryName = $this->faker->firstName();
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->createDirectory($directoryName);
-        self::$attachmentManager->upload($file, $directoryName);
-
-        $this->assertNotEmpty(self::$attachmentManager->directories());
-        $this->assertNotEmpty(self::$attachmentManager->files($directoryName));
-
-        self::$attachmentManager->deleteDirectory($directoryName);
-
-        $this->assertEmpty(self::$attachmentManager->directories());
-        $this->assertEmpty(self::$attachmentManager->files($directoryName));
-    }
-
-    public function testAssertRenameDirectory()
-    {
-        $directoryNameA = $this->faker->firstName();
-        $directoryNameB = $this->faker->firstName();
-
-        $directoryA = self::$attachmentManager->createDirectory($directoryNameA);
-
-        $this->assertEquals(new Collection([$directoryA]), self::$attachmentManager->directories());
-
-        $directoryB = self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
-
-        $this->assertEquals(new Collection([$directoryB]), self::$attachmentManager->directories());
-    }
-
-    public function testAssertRenameDirectoryWithFiles()
-    {
-        $directoryNameA = $this->faker->firstName();
-        $directoryNameB = $this->faker->firstName();
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->createDirectory($directoryNameA);
-        $attachment = self::$attachmentManager->upload($file, $directoryNameA);
-
-        $this->assertEquals($attachment->path, $directoryNameA);
-
-        self::$attachmentManager->renameDirectory($directoryNameA, $directoryNameB);
-
-        $attachment->refresh();
-        $this->assertEquals($attachment->path, $directoryNameB);
-    }
-
-    public function testAssertPreventDuplicateOnUpload()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->upload($file, null);
-        self::$attachmentManager->upload($file, null);
-    }
-
-    public function testAssertPreventDuplicateOnFileRename()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $fileName = $this->faker->firstName;
-        $fileA = UploadedFile::fake()->image("{$fileName}.jpg");
-        $fileB = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->upload($fileA, null);
-        $attachment = self::$attachmentManager->upload($fileB, null);
-
-        self::$attachmentManager->rename($attachment, $fileName);
-    }
-
-    public function testAssertPreventDuplicateOnFileMove()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $directoryName = $this->faker->firstName;
-        self::$attachmentManager->createDirectory($directoryName);
-
-        $fileName = "{$this->faker->firstName}.jpg";
-        $fileA = UploadedFile::fake()->image($fileName);
-        self::$attachmentManager->upload($fileA, $directoryName);
-
-        $fileB = UploadedFile::fake()->image($fileName);
-        $attachment = self::$attachmentManager->upload($fileB, null);
-
-        self::$attachmentManager->move($attachment, $directoryName);
-    }
-
-    public function testAssertPreventDuplicateOnDirectoryRename()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $directoryNameA = $this->faker->firstName;
-        $directoryNameB = $this->faker->firstName;
-
-        self::$attachmentManager->createDirectory($directoryNameA);
-        self::$attachmentManager->createDirectory($directoryNameB);
-
-        self::$attachmentManager->renameDirectory($directoryNameB, $directoryNameA);
-    }
-
-    public function testAssertPreventDuplicateOnDirectoryCreate()
-    {
-        self::expectException(DestinationAlreadyExistsException::class);
-
-        $directoryNameA = $this->faker->firstName;
-
-        self::$attachmentManager->createDirectory($directoryNameA);
-        self::$attachmentManager->createDirectory($directoryNameA);
-    }
-
-    public function testAssertGetUrl()
-    {
-        $fileName = "{$this->faker->firstName}.jpg";
-        $file = UploadedFile::fake()->image($fileName);
-
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        self::assertEquals(url("/files/{$fileName}"), self::$attachmentManager->getUrl(Attachment::find($attachment->id)));
-    }
-
-    public function testAssertAbsolutePath()
-    {
-        $fileName = "{$this->faker->firstName}.jpg";
-        $file = UploadedFile::fake()->image($fileName);
-
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        self::assertEquals(Storage::disk(self::$disk)->path($fileName), $attachment->absolute_path);
-    }
-
-    public function testAssertIsType()
-    {
-        $fileNameA = "{$this->faker->firstName}.jpg";
-        $fileA = UploadedFile::fake()->image($fileNameA);
-
-        $attachmentA = self::$attachmentManager->upload($fileA, null);
-
-        $fileNameB = "{$this->faker->firstName}.txt";
-        $fileB = UploadedFile::fake()->create($fileNameB);
-
-        $attachmentB = self::$attachmentManager->upload($fileB, null);
-
-        self::assertTrue(self::$attachmentManager->isType($attachmentA, AttachmentType::PREVIEWABLE_IMAGE));
-        self::assertFalse(self::$attachmentManager->isType($attachmentB, AttachmentType::PREVIEWABLE_IMAGE));
-    }
-
-    public function testAssertDestinationExists()
-    {
-        $fileName = "{$this->faker->firstName}.jpg";
-        $file = UploadedFile::fake()->image($fileName);
-        self::$attachmentManager->upload($file, null);
-
-        $directoryName = $this->faker->firstName;
-        self::$attachmentManager->createDirectory($directoryName);
-        self::$attachmentManager->upload($file, $directoryName);
-
-        self::assertTrue(self::$attachmentManager->destinationExists($fileName));
-        self::assertTrue(self::$attachmentManager->destinationExists($directoryName));
-        self::assertTrue(self::$attachmentManager->destinationExists("{$directoryName}/{$fileName}"));
-
-        self::assertFalse(self::$attachmentManager->destinationExists('test.jpg'));
-        self::assertFalse(self::$attachmentManager->destinationExists('test'));
-        self::assertFalse(self::$attachmentManager->destinationExists('test/test.jpg'));
-    }
-
-    public function testAssertSetDisk()
-    {
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        self::$attachmentManager->upload($file, null);
-
-        self::assertNotEmpty(self::$attachmentManager->files(null));
-
-        self::$attachmentManager->setDisk($this->faker->firstName);
-
-        self::assertEmpty(self::$attachmentManager->files(null));
-    }
-
-    public static function compatibleModelClassProvider(): array
-    {
-        return [
-            ['attachment-library.class_mapping.attachment', new class () extends Attachment {
-            }],
-            // TODO: implement once readonly classes are supported https://github.com/mockery/mockery/issues/1317
-            // ['attachment-library.class_mapping.directory', \Mockery::namedMock('ExtendedDirectory', Directory::class)]
-        ];
-    }
-
-    public static function incompatibleModelClassProvider(): array
-    {
-        return [
-            ['attachment-library.class_mapping.attachment'],
-            ['attachment-library.class_mapping.directory'],
-        ];
-    }
-
-    /**
-     * @dataProvider incompatibleModelClassProvider
-     */
-    public function testAssertIncompatibleAttachmentModel(string $config)
-    {
-        self::expectException(IncompatibleClassMappingException::class);
-
-        $mock = new class () {
-        };
-
-        Config::set($config, $mock::class);
-
-        new AttachmentManager();
-    }
-
-    /**
-     * @dataProvider compatibleModelClassProvider
-     */
-    public function testAssertCompatibleAttachmentModel(string $config, object $mock)
-    {
-        self::expectNotToPerformAssertions();
-
-        Config::set($config, $mock::class);
-
-        new AttachmentManager();
-    }
-
-    /**
-     * @dataProvider fileNameProvider
-     */
-    public function testAssertRenameFileWithDisallowedCharacters($name, $expectsException)
-    {
-        if ($expectsException) {
-            self::expectException(DisallowedCharacterException::class);
-        }
-
-        $file = UploadedFile::fake()->image("{$this->faker->firstName}.jpg");
-
-        $attachment = self::$attachmentManager->upload($file, null);
-
-        self::$attachmentManager->rename($attachment, $name);
-
-        self::assertEquals($attachment->name, $name);
-    }
-
-    /**
-     * @dataProvider pathProvider
-     */
-    public function testAssertPathWithDisallowedCharacters($name, $expectsException)
-    {
-        if ($expectsException) {
-            self::expectException(DisallowedCharacterException::class);
-        }
-
-        self::$attachmentManager->createDirectory($name, DirectoryStrategies::CREATE_PARENT_DIRECTORIES);
-        self::assertTrue(self::$attachmentManager->destinationExists($name));
-    }
-
-    public function testAssertNoParentDirectory()
-    {
-        self::expectException(NoParentDirectoryException::class);
-
-        $path = "{$this->faker->firstName}/{$this->faker->firstName}";
-        self::$attachmentManager->createDirectory($path);
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Storage::fake(self::$disk);
-
-        Config::set('attachment-library.disk', self::$disk);
-        Config::set('attachment-library.attachment_mime_type_mapping', [
-            AttachmentType::PREVIEWABLE_IMAGE => ['image/jpeg'],
-        ]);
-
-        $user = new User();
-        $this->be($user);
-
-        self::$attachmentManager = new AttachmentManager();
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        Storage::fake(self::$disk);
-    }
-
-    protected function afterRefreshingDatabase(): void
-    {
-        $migrations = [
-            require (__DIR__.'/../database/migrations/create_attachments_table.php.stub'),
-            require (__DIR__.'/../database/migrations/create_attachables_table.php.stub'),
-        ];
-
-        foreach ($migrations as $migration) {
-            $migration->up();
-        }
-    }
-}
+    $attachmentManager->createDirectory($name, DirectoryStrategies::CREATE_PARENT_DIRECTORIES);
+    expect($attachmentManager->destinationExists($name))->toBeTrue();
+})->with([
+    ['test/test', false],
+    ['t-est', false],
+    ['t_est', false],
+    ['tést', false],
+    ['诶', false],
+    ['test/.test', false],
+    ['.test/test', false],
+    ['test', false],
+    ['test/t est', false],
+    ['test/t est/test', false], // Non-breaking space.
+    ['test/t!est', true],
+    ['test/t!est/t!est', true],
+    ["te\tst/test", true],
+    ["te\nst/test", true],
+    ["te\ns!t/test", true],
+    ['test/🐄', true],
+    ["'test'/test", true],
+    ["test/\u{E000}", true], // Private-use-area character renders as invisible.
+]);
+
+it('requires a parent directory', function () {
+    $attachmentManager = new AttachmentManager();
+    $path = fake()->unique()->word() . '/' . fake()->unique()->word();
+
+    $attachmentManager->createDirectory($path);
+})->throws(NoParentDirectoryException::class);

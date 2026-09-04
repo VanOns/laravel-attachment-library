@@ -5,3 +5,12 @@ parameters:
     level: 5
     paths:
         - src/
+    viewDirectories:
+        - resources/views
+
+    # HasAttachments is meant to be used on consumer apps' own Eloquent models, never within this
+    # package's own src/. It's exercised by tests/Concerns/HasAttachmentsTest.php via a fixture model.
+    ignoreErrors:
+        -
+            identifier: trait.unused
+            path: src/Concerns/HasAttachments.php

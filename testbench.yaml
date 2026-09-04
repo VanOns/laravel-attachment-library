@@ -1,0 +1,5 @@
+laravel: '@testbench'
+
+providers:
+  - VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider
+  - VanOns\LaravelAttachmentLibrary\GlideServiceProvider
