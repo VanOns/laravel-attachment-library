@@ -74,7 +74,7 @@ class GlideManager
     public function humanReadableSize(int $bytes, $decimals = 2): string
     {
         $size = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        $factor = floor((strlen((string) $bytes) - 1) / 3);
+        $factor = (int) floor((strlen((string) $bytes) - 1) / 3);
         return sprintf("%.{$decimals}f", $bytes / (1024 ** $factor)) . ' ' . $size[$factor];
     }
 

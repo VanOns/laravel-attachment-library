@@ -45,10 +45,12 @@ class Resizer
         if ($src instanceof Attachment) {
             $this->attachment = $src;
 
-            $x = $src->focal_point['x'] ?? 50;
-            $y = $src->focal_point['y'] ?? 50;
+            if ($src->focal_point) {
+                $x = $src->focal_point['x'] ?? 50;
+                $y = $src->focal_point['y'] ?? 50;
 
-            $this->crop($x, $y);
+                $this->crop($x, $y);
+            }
         }
 
         $this->path = $this->getPath($src);

@@ -1,70 +1,46 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test\DataTransferObjects;
-
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Exceptions\ClassDoesNotExistException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\FileNamers\ReplaceControlCharacters;
-use VanOns\LaravelAttachmentLibrary\Test\TestCase;
 
-class FilenameTest extends TestCase
-{
-    use WithFaker;
-
-    public static function fileNameProvider(): array
-    {
-        return [
-            ['test.jpg', 'test', 'jpg'],
-            ['test.php.jpg', 'test.php', 'jpg'],
-            ["te\u{00A0}\u{1680}\u{180E}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{200B}\u{202F}\u{205F}\u{3000}\u{FEFF}st.jpg", 'te                   st', 'jpg'], // Whitespaces should replace into regular spaces (\u{0020})
-            ["te\u{00AD}st.jpg", 'te-st', 'jpg'], // Soft-hyphen
-        ];
-    }
-
-    /**
-     * @dataProvider fileNameProvider
-     */
-    public function testAssertCorrectFilename(string $name, string $expectedName, string $expectedExtension)
-    {
-        Config::set('attachment-library.file_namers', [ReplaceControlCharacters::class => [
-            'search' => [
-                "/\u{AD}/u",
-                "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u",
-                "/\p{C}/u",
-            ],
-            'replace' => [
-                '-',
-                ' ',
-                '',
-            ],
+it('produces the correct filename', function (string $name, string $expectedName, string $expectedExtension) {
+    Config::set('attachment-library.file_namers', [ReplaceControlCharacters::class => [
+        'search' => [
+            "/\u{AD}/u",
+            "/[\x{00A0}\x{1680}\x{180E}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/u",
+            "/\p{C}/u",
         ],
-        ]);
+        'replace' => [
+            '-',
+            ' ',
+            '',
+        ],
+    ],
+    ]);
 
-        $filename = new Filename($name);
+    $filename = new Filename($name);
 
-        $this->assertEquals($expectedName, $filename->name);
-        $this->assertEquals($expectedExtension, $filename->extension);
-    }
+    expect($filename->name)->toBe($expectedName);
+    expect($filename->extension)->toBe($expectedExtension);
+})->with([
+    ['test.jpg', 'test', 'jpg'],
+    ['test.php.jpg', 'test.php', 'jpg'],
+    ["te\u{00A0}\u{1680}\u{180E}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{200B}\u{202F}\u{205F}\u{3000}\u{FEFF}st.jpg", 'te                   st', 'jpg'],
+    ["te\u{00AD}st.jpg", 'te-st', 'jpg'],
+]);
 
-    public function testAssertNonExistingClass()
-    {
-        $this->expectException(ClassDoesNotExistException::class);
+it('throws when the configured class does not exist', function () {
+    Config::set('attachment-library.file_namers', ['iets']);
 
-        Config::set('attachment-library.file_namers', ['iets']);
+    new Filename('asd');
+})->throws(ClassDoesNotExistException::class);
 
-        new Filename('asd');
-    }
+it('throws when the configured class is incompatible', function () {
+    Config::set('attachment-library.file_namers', [(new class () {
+    })::class => null]);
 
-    public function testAssertIncompatibleClass()
-    {
-        $this->expectException(IncompatibleClassMappingException::class);
-
-        Config::set('attachment-library.file_namers', [(new class () {
-        })::class => null]);
-
-        new Filename('asd');
-    }
-}
+    new Filename('asd');
+})->throws(IncompatibleClassMappingException::class);

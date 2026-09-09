@@ -1,51 +1,29 @@
 <?php
 
-namespace VanOns\LaravelAttachmentLibrary\Test;
-
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Config;
-use Mockery;
 use VanOns\LaravelAttachmentLibrary\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\LaravelAttachmentLibraryServiceProvider;
 
-class LaravelAttachmentLibraryServiceProviderTest extends TestCase
-{
-    use WithFaker;
+it('accepts a compatible attachment manager class map', function () {
+    $this->expectNotToPerformAssertions();
 
-    protected static ?Application $applicationMock;
+    $mock = new class () extends AttachmentManager {
+    };
 
-    public function testAssertCompatibleAttachmentManagerClassMap()
-    {
-        self::expectNotToPerformAssertions();
+    Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
 
-        $mock = new class () extends AttachmentManager {
-        };
+    $serviceProvider = new LaravelAttachmentLibraryServiceProvider(Mockery::mock(Application::class));
+    $serviceProvider->packageBooted();
+});
 
-        Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
+it('rejects an incompatible attachment manager class map', function () {
+    $mock = new class () {
+    };
 
-        $serviceProvider = new LaravelAttachmentLibraryServiceProvider(self::$applicationMock);
-        $serviceProvider->packageBooted();
-    }
+    Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
 
-    public function testAssertIncompatibleAttachmentManagerClassMap()
-    {
-        self::expectException(IncompatibleClassMappingException::class);
-
-        $mock = new class () {
-        };
-
-        Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
-
-        $serviceProvider = new LaravelAttachmentLibraryServiceProvider(self::$applicationMock);
-        $serviceProvider->bootingPackage();
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        self::$applicationMock = Mockery::mock(Application::class);
-    }
-}
+    $serviceProvider = new LaravelAttachmentLibraryServiceProvider(Mockery::mock(Application::class));
+    $serviceProvider->bootingPackage();
+})->throws(IncompatibleClassMappingException::class);
