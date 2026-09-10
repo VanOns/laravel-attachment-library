@@ -55,6 +55,6 @@ it('caches the resolved metadata', function () {
     $gd->getMetadata($file);
 
     expect(Cache::get($cacheKey))->toEqual(
-        new FileMetadata('10', '10', bits: 8, channels: 3)
+        get_object_vars(new FileMetadata('10', '10', bits: 8, channels: 3))
     );
 });
