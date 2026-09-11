@@ -242,7 +242,7 @@ class AttachmentManager
             throw new DestinationAlreadyExistsException();
         }
 
-        $file->store($path, $this->disk);
+        $file->storeAs($desiredPath ?? '', (string) $filename, $this->disk);
 
         return $this->attachmentClass::create([
             'name' => $filename->name,
@@ -275,7 +275,7 @@ class AttachmentManager
         }
 
         $disk->delete($attachment->full_path);
-        $file->store($path, $this->disk);
+        $file->storeAs($attachment->path ?? '', (string) $filename, $this->disk);
 
         $attachment->update([
             'name' => $filename->name,
