@@ -5,6 +5,12 @@ return [
     'driver' => env('GLIDE_DRIVER', 'gd'),
 
     /**
+     * The origin the generated URLs should point to.
+     * Leave null to use the default application origin.
+     */
+    'origin' => env('GLIDE_ORIGIN', null),
+
+    /**
      * The disk that will be used to store the resized images.
      * Can be a name of an existing disk like public or a disk configuration.
      * See: https://laravel.com/docs/9.x/filesystem#configuration
