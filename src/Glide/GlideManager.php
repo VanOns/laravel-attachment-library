@@ -14,7 +14,7 @@ class GlideManager
     {
         return ServerFactory::create([
             'driver' => $this->driver(),
-            'source' => config('glide.source'),
+            'source' => $this->sourceDisk()->getDriver(),
             'cache' => $this->cacheDisk()->getDriver(),
             'defaults' => config('glide.defaults'),
             'presets' => config('glide.presets'),
@@ -29,6 +29,11 @@ class GlideManager
     public function driver(): string
     {
         return config('glide.driver', 'gd');
+    }
+
+    public function sourceDisk(): Filesystem
+    {
+        return Storage::disk(config('attachment-library.disk'));
     }
 
     public function cacheDisk(): Filesystem

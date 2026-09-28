@@ -3,7 +3,6 @@
 return [
 
     'driver' => env('GLIDE_DRIVER', 'gd'),
-    'source' => storage_path('app/public'),
 
     /**
      * The disk that will be used to store the resized images.
