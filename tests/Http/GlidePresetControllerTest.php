@@ -9,7 +9,6 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 beforeEach(function () {
     Storage::fake('test');
     Config::set('attachment-library.disk', 'test');
-    Config::set('glide.source', Storage::disk('test')->path(''));
 
     Config::set('glide.cache_disk.root', Storage::disk('test')->path('glide-cache'));
     Storage::disk('test')->makeDirectory('glide-cache');

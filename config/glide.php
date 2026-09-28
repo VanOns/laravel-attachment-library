@@ -3,7 +3,12 @@
 return [
 
     'driver' => env('GLIDE_DRIVER', 'gd'),
-    'source' => storage_path('app/public'),
+
+    /**
+     * The origin the generated URLs should point to.
+     * Leave null to use the default application origin.
+     */
+    'origin' => env('GLIDE_ORIGIN', null),
 
     /**
      * The disk that will be used to store the resized images.

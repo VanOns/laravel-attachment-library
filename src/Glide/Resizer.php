@@ -277,6 +277,10 @@ class Resizer
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
+        if ($origin = config('glide.origin')) {
+            URL::useOrigin($origin);
+        }
+
         $url = URL::signedRoute('glide', [
             'options' => app(OptionsParser::class)->toString([
                 'w' => $width,
