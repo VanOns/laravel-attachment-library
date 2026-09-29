@@ -12,29 +12,30 @@ use Illuminate\Database\Query\Builder;
 use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
 use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
+use VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
 /**
- * @property int $created_by
+ * @property int|string|null $created_by
  * @property int $size
- * @property int $updated_by
+ * @property int|string|null $updated_by
  * @property string $absolute_path
- * @property string $alt
- * @property string $caption
- * @property string $description
+ * @property string|null $alt
+ * @property string|null $caption
+ * @property string|null $description
  * @property string $disk
  * @property string $extension
  * @property string $filename
  * @property string $full_path
- * @property string $metadata
+ * @property FileMetadata|false $metadata
  * @property string $mime_type
  * @property string $name
- * @property string $path
- * @property string $title
- * @property ?string $type
+ * @property string|null $path
+ * @property string|null $title
+ * @property string|null $type
  * @property string $url
  * @property array|null $focal_point
  *
