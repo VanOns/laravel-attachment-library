@@ -18,22 +18,22 @@ use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
 
 /**
- * @property int $created_by
+ * @property int|string|null $created_by
  * @property int $size
- * @property int $updated_by
+ * @property int|string|null $updated_by
  * @property string $absolute_path
- * @property string $alt
- * @property string $caption
- * @property string $description
+ * @property ?string $alt
+ * @property ?string $caption
+ * @property ?string $description
  * @property string $disk
  * @property string $extension
  * @property string $filename
  * @property string $full_path
- * @property string $metadata
+ * @property \VanOns\LaravelAttachmentLibrary\DataTransferObjects\FileMetadata|false $metadata
  * @property string $mime_type
  * @property string $name
- * @property string $path
- * @property string $title
+ * @property ?string $path
+ * @property ?string $title
  * @property ?string $type
  * @property string $url
  * @property array|null $focal_point
