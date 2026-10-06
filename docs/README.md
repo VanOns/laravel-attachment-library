@@ -16,6 +16,7 @@
       2. [Directories](basic-usage/manage-attachments-and-directories.md#directories)
    4. [Responsive images](basic-usage/responsive-images.md)
       1. [Manually resize image](basic-usage/responsive-images.md#manually-resize-image)
+   5. [Videos](basic-usage/videos.md)
 5. [Advanced usage](advanced-usage/README.md#contents)
    1. [Extending the package](advanced-usage/extending-the-package.md)
    2. [File namers](advanced-usage/file-namers.md)

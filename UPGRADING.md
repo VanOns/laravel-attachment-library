@@ -13,4 +13,13 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * Run `php artisan migrate` to update the database.
 -->
 
+# Video support
+
+* Publish and run the new migrations: `php artisan vendor:publish --tag=laravel-attachment-library-migrations` and
+  `php artisan migrate`. They add `width`, `height`, `duration` and `poster_id` to `attachments` and create the
+  `attachment_captions` table.
+* If you published the configuration, add the `ffmpeg` block and the `Ffprobe` metadata retriever from the package's
+  `config/attachment-library.php`.
+* Optionally run `php artisan attachment-library:process-videos --posters` to process existing videos.
+
 [issues]: https://github.com/VanOns/laravel-attachment-library/issues

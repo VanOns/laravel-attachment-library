@@ -36,6 +36,17 @@ return [
      */
     'metadata_retrievers' => [
         \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd::class => ['image/*'],
+        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Ffprobe::class => ['video/*'],
+    ],
+
+    /**
+     * Binaries used for video dimensions and poster images. Video processing is
+     * skipped when they are not available.
+     */
+    'ffmpeg' => [
+        'ffmpeg_path' => env('FFMPEG_PATH', 'ffmpeg'),
+        'ffprobe_path' => env('FFPROBE_PATH', 'ffprobe'),
+        'timeout' => 60,
     ],
 
     /**

@@ -8,6 +8,10 @@ The package has been tested and verified to work with the following versions:
 - PHP: 8.2
 - Laravel: 11
 
+## Optional
+
+- `ffmpeg` and `ffprobe`, to store video dimensions and generate poster images. See [Videos](basic-usage/videos.md).
+
 ## Compatibility
 
 While the package is specifically tested with the versions listed above, it may also work with other versions of PHP and Laravel.

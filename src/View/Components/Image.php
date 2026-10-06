@@ -3,9 +3,9 @@
 namespace VanOns\LaravelAttachmentLibrary\View\Components;
 
 use Illuminate\View\Component;
-use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 use VanOns\LaravelAttachmentLibrary\Facades\Glide;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\View\Components\Concerns\RetrievesAttachment;
 
 /**
  * Blade component for wrapping Glide images responsively.
@@ -14,6 +14,8 @@ use VanOns\LaravelAttachmentLibrary\Models\Attachment;
  */
 class Image extends Component
 {
+    use RetrievesAttachment;
+
     public array $breakpoints;
 
     public array $formats;
@@ -37,23 +39,6 @@ class Image extends Component
     public function render()
     {
         return view('laravel-attachment-library::components.image');
-    }
-
-    protected function retrieveAttachment(): ?Attachment
-    {
-        if ($this->src instanceof Attachment) {
-            return $this->src;
-        }
-
-        if (is_numeric($this->src)) {
-            return Attachment::find($this->src);
-        }
-
-        if (is_string($this->src)) {
-            return Attachment::whereFilename(new Filename($this->src))->first();
-        }
-
-        return null;
     }
 
     protected function getGlideSupport(): bool

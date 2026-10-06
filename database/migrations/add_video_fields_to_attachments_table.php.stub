@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class () extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('attachments', function (Blueprint $table) {
+            $table->unsignedInteger('width')->nullable()->after('size');
+            $table->unsignedInteger('height')->nullable()->after('width');
+            $table->float('duration')->nullable()->after('height');
+            $table->foreignId('poster_id')->nullable()->after('duration')->constrained('attachments')->nullOnDelete();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('attachments', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('poster_id');
+            $table->dropColumn(['width', 'height', 'duration']);
+        });
+    }
+};

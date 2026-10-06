@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -18,7 +19,9 @@ use VanOns\LaravelAttachmentLibrary\Exceptions\DestinationAlreadyExistsException
 use VanOns\LaravelAttachmentLibrary\Exceptions\DisallowedCharacterException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Exceptions\NoParentDirectoryException;
+use VanOns\LaravelAttachmentLibrary\Facades\Ffmpeg;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\Video\SrtToVtt;
 
 /**
  * Performs attachment related actions on database and filesystem.
@@ -244,7 +247,7 @@ class AttachmentManager
 
         $file->storeAs($desiredPath ?? '', (string) $filename, $this->disk);
 
-        return $this->attachmentClass::create([
+        $attachment = $this->attachmentClass::create([
             'name' => $filename->name,
             'extension' => $filename->extension,
             'mime_type' => $file->getMimeType(),
@@ -252,6 +255,10 @@ class AttachmentManager
             'path' => $desiredPath,
             'size' => $file->getSize(),
         ]);
+
+        $this->processVideo($attachment);
+
+        return $attachment;
     }
 
     /**
@@ -284,7 +291,133 @@ class AttachmentManager
             'size' => $file->getSize(),
         ]);
 
+        $this->processVideo($attachment);
+
         return $attachment;
+    }
+
+    /**
+     * Store the video's dimensions and duration, and generate a poster when it has none.
+     *
+     * Skipped when the attachment is not a video or ffmpeg is not available.
+     */
+    public function processVideo(Attachment $video, bool $generatePoster = true): void
+    {
+        if (! $video->isVideo() || ! Ffmpeg::isAvailable()) {
+            return;
+        }
+
+        $video->update(Ffmpeg::probe($video) ?? ['width' => null, 'height' => null, 'duration' => null]);
+
+        if ($generatePoster && ! $video->poster_id && $video->width) {
+            $this->generatePoster($video);
+        }
+    }
+
+    /**
+     * Save the first frame of the video as a poster image next to it and link it.
+     *
+     * Returns null when the frame could not be extracted.
+     */
+    public function generatePoster(Attachment $video): ?Attachment
+    {
+        $frame = sys_get_temp_dir() . '/' . Str::uuid() . '.jpg';
+
+        try {
+            if (! Ffmpeg::extractFirstFrame($video, $frame)) {
+                return null;
+            }
+
+            $poster = $this->uploadLocalFile($frame, $this->uniqueFilename($video->path, "{$video->name}-poster", 'jpg'), $video->path);
+        } finally {
+            if (is_file($frame)) {
+                unlink($frame);
+            }
+        }
+
+        $video->update(['poster_id' => $poster->id]);
+
+        return $poster;
+    }
+
+    /**
+     * Link caption tracks to the video in the given order, replacing the current ones.
+     *
+     * SubRip (.srt) files are converted to a WebVTT file next to them, which is linked instead.
+     *
+     * @param  array<int, array{caption_id: int, language: string, label?: string|null, is_default?: bool}>  $tracks
+     *
+     * @throws FileNotFoundException if a SubRip file no longer exists on disk.
+     */
+    public function syncCaptions(Attachment $video, array $tracks): void
+    {
+        $captions = collect(array_values($tracks))->mapWithKeys(function (array $track, int $order) {
+            $caption = $this->attachmentClass::findOrFail($track['caption_id']);
+
+            if (strtolower($caption->extension) === 'srt') {
+                $caption = $this->convertToVtt($caption);
+            }
+
+            return [$caption->id => [
+                'language' => $track['language'],
+                'label' => $track['label'] ?? null,
+                'is_default' => (bool) ($track['is_default'] ?? false),
+                'order' => $order,
+            ]];
+        });
+
+        $video->captions()->sync($captions);
+    }
+
+    /**
+     * Return a filename in the given directory that does not exist yet, by appending a number when needed.
+     */
+    public function uniqueFilename(?string $path, string $name, string $extension): string
+    {
+        $filename = "{$name}.{$extension}";
+
+        for ($i = 1; $this->destinationExists(implode('/', array_filter([$path, $filename]))); $i++) {
+            $filename = "{$name}-{$i}.{$extension}";
+        }
+
+        return $filename;
+    }
+
+    /**
+     * Return the WebVTT version of a SubRip attachment, reusing an earlier conversion when unchanged.
+     *
+     * @throws FileNotFoundException
+     */
+    protected function convertToVtt(Attachment $srt): Attachment
+    {
+        $vtt = SrtToVtt::convert($srt->getContents() ?? throw new FileNotFoundException($srt->full_path));
+
+        $existing = $this->attachmentClass::whereDisk($srt->disk)
+            ->wherePath($srt->path)
+            ->where('name', $srt->name)
+            ->where('extension', 'vtt')
+            ->first();
+
+        if ($existing?->getContents() === $vtt) {
+            return $existing;
+        }
+
+        $file = sys_get_temp_dir() . '/' . Str::uuid() . '.vtt';
+        file_put_contents($file, $vtt);
+
+        try {
+            return $this->uploadLocalFile($file, $this->uniqueFilename($srt->path, $srt->name, 'vtt'), $srt->path);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    /**
+     * Upload a file generated on the local filesystem as if it were uploaded by a user.
+     */
+    protected function uploadLocalFile(string $localPath, string $filename, ?string $desiredPath): Attachment
+    {
+        return $this->upload(new UploadedFile($localPath, $filename, test: true), $desiredPath);
     }
 
     /**

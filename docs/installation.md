@@ -35,4 +35,11 @@ to the project's `.env` file:
 ATTACHMENTS_DISK=disk_name_here
 ```
 
+Video dimensions and posters require `ffmpeg` and `ffprobe`. Set their paths when they are not on the `PATH`:
+
+```env
+FFMPEG_PATH=/usr/bin/ffmpeg
+FFPROBE_PATH=/usr/bin/ffprobe
+```
+
 The `glide.php` and `attachment-library.php` files contain more configuration options.

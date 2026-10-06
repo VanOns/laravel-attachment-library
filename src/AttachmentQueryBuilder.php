@@ -3,6 +3,7 @@
 namespace VanOns\LaravelAttachmentLibrary;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\DataTransferObjects\Filename;
 
 /**
@@ -44,5 +45,15 @@ class AttachmentQueryBuilder extends Builder
         return $this->where('path', '=', $filename->path)
             ->where('name', '=', $filename->name)
             ->where('extension', '=', $filename->extension);
+    }
+
+    /**
+     * Filter files by attachment type.
+     *
+     * @see \VanOns\LaravelAttachmentLibrary\Enums\AttachmentType
+     */
+    public function whereType(string $type): static
+    {
+        return $this->whereIn('mime_type', Config::get("attachment-library.attachment_mime_type_mapping.{$type}", []));
     }
 }
