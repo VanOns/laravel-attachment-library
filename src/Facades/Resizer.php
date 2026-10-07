@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Facade;
  */
 class Resizer extends Facade
 {
+    /**
+     * A resizer keeps its options between calls, so every call needs a fresh instance.
+     */
+    protected static $cached = false;
+
     protected static function getFacadeAccessor(): string
     {
         return 'attachment.resizer';
