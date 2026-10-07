@@ -13,7 +13,7 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * Run `php artisan migrate` to update the database.
 -->
 
-# Video support
+# v1.6 to v1.7
 
 * Publish and run the new migrations: `php artisan vendor:publish --tag=laravel-attachment-library-migrations` and
   `php artisan migrate`. They add `width`, `height`, `duration` and `poster_id` to `attachments` and create the
