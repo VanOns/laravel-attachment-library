@@ -40,8 +40,9 @@ class Video extends Component
 
         $resizer = Resizer::src($poster);
 
-        if ($this->attachment->width) {
-            $resizer->width($this->attachment->width);
+        // Crop the poster to the video's frame, so the player shows no letterboxing before playback.
+        if ($this->attachment->width && $this->attachment->height) {
+            $resizer->width($this->attachment->width)->height($this->attachment->height);
         }
 
         return $resizer->resize()['url'] ?? $poster->url;
