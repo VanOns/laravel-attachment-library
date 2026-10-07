@@ -313,6 +313,22 @@ it('checks whether a destination exists', function () {
     expect($attachmentManager->destinationExists('test/test.jpg'))->toBeFalse();
 });
 
+it('sets timestamps on attachments created from files on disk', function () {
+    $existing = Attachment::factory()->create(['disk' => 'test', 'path' => null, 'name' => 'existing', 'extension' => 'txt']);
+    Storage::disk('test')->put('existing.txt', 'existing');
+    Storage::disk('test')->put('synced.txt', 'synced');
+
+    (new AttachmentManager())->updateFiles(null);
+
+    $synced = Attachment::whereName('synced')->firstOrFail();
+
+    expect($synced->created_at)->not->toBeNull()
+        ->and($synced->updated_at)->not->toBeNull()
+        ->and($synced->created_at->eq($synced->updated_at))->toBeTrue()
+        ->and($existing->fresh()->updated_at->eq($existing->updated_at))->toBeTrue()
+        ->and(Attachment::whereName('existing')->count())->toBe(1);
+});
+
 it('resets the file list when switching disks', function () {
     $attachmentManager = new AttachmentManager();
     $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
