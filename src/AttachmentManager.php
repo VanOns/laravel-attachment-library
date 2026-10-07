@@ -135,6 +135,12 @@ class AttachmentManager
             ->get()
             ->mapWithKeys(fn ($item) => ["{$item->name}.{$item->extension}" => true]);
 
+        $model = new $this->attachmentClass();
+        $now = $model->freshTimestamp();
+        $timestamps = $model->usesTimestamps()
+            ? [$model->getCreatedAtColumn() => $now, $model->getUpdatedAtColumn() => $now]
+            : [];
+
         $data = [];
 
         foreach ($files as $file) {
@@ -155,6 +161,7 @@ class AttachmentManager
                 'disk'      => $this->disk,
                 'path'      => $filename->path,
                 'size'      => $this->getFilesystem()->size($file),
+                ...$timestamps,
             ];
         }
 
