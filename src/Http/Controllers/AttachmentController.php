@@ -17,6 +17,8 @@ class AttachmentController
      */
     public function __invoke(Request $request, Attachment $attachment): Response
     {
+        abort_unless($attachment->fileExists(), 404);
+
         $disposition = AttachmentType::isRenderable($attachment->type)
             ? HeaderUtils::DISPOSITION_INLINE
             : HeaderUtils::DISPOSITION_ATTACHMENT;

@@ -4,6 +4,7 @@ namespace VanOns\LaravelAttachmentLibrary\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
 use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Facades\Ffmpeg;
@@ -40,7 +41,9 @@ class ProcessVideos extends Command
 
         $posters = (bool) $this->option('posters');
 
-        $query = Attachment::whereType(AttachmentType::PREVIEWABLE_VIDEO)
+        $attachmentClass = Config::get('attachment-library.class_mapping.attachment', Attachment::class);
+
+        $query = $attachmentClass::whereType(AttachmentType::PREVIEWABLE_VIDEO)
             ->unless($this->option('force'), fn (Builder $query) => $query->where(
                 fn (Builder $query) => $query->whereNull('width')->when($posters, fn (Builder $query) => $query->orWhereNull('poster_id'))
             ));

@@ -18,6 +18,11 @@ class Ffmpeg
     protected ?bool $available = null;
 
     /**
+     * @var array<string, string>
+     */
+    protected array $localCopies = [];
+
+    /**
      * Check whether both the ffmpeg and ffprobe binaries can be executed.
      */
     public function isAvailable(): bool
@@ -98,11 +103,19 @@ class Ffmpeg
 
     /**
      * Run the callback with a local path to the video, downloading it first when stored on a remote disk.
+     *
+     * Nested calls for the same video reuse the download of the outer call.
      */
-    protected function withLocalPath(Attachment $video, Closure $callback): mixed
+    public function withLocalPath(Attachment $video, Closure $callback): mixed
     {
         if (! $video->isRemote()) {
             return $callback($video->absolute_path);
+        }
+
+        $key = "{$video->disk}:{$video->full_path}";
+
+        if (isset($this->localCopies[$key])) {
+            return $callback($this->localCopies[$key]);
         }
 
         $stream = Storage::disk($video->disk)->readStream($video->full_path);
@@ -115,9 +128,12 @@ class Ffmpeg
         stream_copy_to_stream($stream, $tmpFile);
         fclose($stream);
 
+        $this->localCopies[$key] = stream_get_meta_data($tmpFile)['uri'];
+
         try {
-            return $callback(stream_get_meta_data($tmpFile)['uri']);
+            return $callback($this->localCopies[$key]);
         } finally {
+            unset($this->localCopies[$key]);
             fclose($tmpFile);
         }
     }

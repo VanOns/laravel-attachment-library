@@ -30,7 +30,7 @@ class AttachmentResource extends JsonResource
             'height' => $this->height,
             'duration' => $this->duration,
             'aspect_ratio' => $this->aspect_ratio,
-            'poster' => new AttachmentResource($this->whenLoaded('poster')),
+            'poster' => $this->whenLoaded('poster', fn (Attachment $poster) => new AttachmentResource($poster)),
             'captions' => $this->whenLoaded('captions', fn () => $this->captions->map(fn (Attachment $caption) => [
                 'url' => $caption->url,
                 'language' => $caption->pivot->language,

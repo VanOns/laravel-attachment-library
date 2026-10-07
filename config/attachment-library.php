@@ -36,7 +36,7 @@ return [
      */
     'metadata_retrievers' => [
         \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Gd::class => ['image/*'],
-        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Ffprobe::class => ['video/*'],
+        \VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Video::class => ['video/*'],
     ],
 
     /**

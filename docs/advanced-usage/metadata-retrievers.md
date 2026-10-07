@@ -1,8 +1,9 @@
 # Metadata retrievers
 
 By default, this package provides additional metadata for image files using Gd or Imagick, and for video files using
-ffprobe. The Gd and Ffprobe adapters are preconfigured, but the Imagick adapter could be dropped in if the configuration
-on the server allows it. The Ffprobe adapter returns no metadata when ffprobe is not available (see [Videos](../basic-usage/videos.md)).
+the dimensions and duration stored when they were processed. The Gd and Video adapters are preconfigured, but the
+Imagick adapter could be dropped in if the configuration on the server allows it. The Video adapter returns no metadata
+for videos that were not processed (see [Videos](../basic-usage/videos.md)).
 
 Change the `metadata_retrievers` content in the `attachment-library.php` configuration file, to make changes to which
 metadata provider classes are used.

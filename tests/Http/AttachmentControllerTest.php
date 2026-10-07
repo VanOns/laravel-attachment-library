@@ -44,3 +44,10 @@ it('streams files from a remote disk', function () {
     $response->assertOk()->assertHeader('Content-Type', 'video/mp4');
     expect($response->streamedContent())->toBe('remote video');
 });
+
+it('returns not found when the file is missing from the disk', function () {
+    AttachmentManager::setDisk('test')->upload(UploadedFile::fake()->createWithContent('clip.mp4', 'video')->mimeType('video/mp4'));
+    Storage::disk('test')->delete('clip.mp4');
+
+    $this->get('/files/clip.mp4')->assertNotFound();
+});

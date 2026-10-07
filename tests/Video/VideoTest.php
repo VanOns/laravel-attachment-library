@@ -5,13 +5,16 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use VanOns\LaravelAttachmentLibrary\Adapters\FileMetadata\Video;
 use VanOns\LaravelAttachmentLibrary\Enums\AttachmentType;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Facades\Ffmpeg;
 use VanOns\LaravelAttachmentLibrary\Http\Resources\AttachmentResource;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\Test\Fixtures\CustomAttachment;
 
 function uploadVideo(string $name = 'clip.mp4', ?string $path = null): Attachment
 {
@@ -123,17 +126,84 @@ describe('uploading', function () {
         Process::assertNothingRan();
     });
 
-    it('keeps the existing poster when replacing a video', function () {
+    it('overwrites a generated poster when replacing a video', function () {
         fakeFfmpeg();
         $video = uploadVideo();
         $posterId = $video->poster_id;
+        Storage::disk('test')->put('clip-poster.jpg', 'old frame');
 
         fakeFfmpeg(['width' => 640, 'height' => 480]);
-        AttachmentManager::replace(UploadedFile::fake()->create('clip.mp4', 200, 'video/mp4'), $video);
+        AttachmentManager::replace(UploadedFile::fake()->create('other.mp4', 200, 'video/mp4'), $video);
 
         expect($video->fresh()->poster_id)->toBe($posterId)
             ->and($video->fresh()->width)->toBe(640)
+            ->and(Storage::disk('test')->get('clip-poster.jpg'))->not->toBe('old frame')
             ->and(Attachment::count())->toBe(2);
+    });
+
+    it('keeps a linked poster when replacing a video', function () {
+        fakeMissingFfmpeg();
+        $video = uploadVideo();
+        $poster = AttachmentManager::upload(UploadedFile::fake()->createWithContent('cover.jpg', 'cover'));
+        $video->update(['poster_id' => $poster->id]);
+
+        fakeFfmpeg();
+        AttachmentManager::replace(UploadedFile::fake()->create('clip.mp4', 200, 'video/mp4'), $video);
+
+        expect($video->fresh()->poster_id)->toBe($poster->id)
+            ->and(Storage::disk('test')->get('cover.jpg'))->toBe('cover')
+            ->and(Attachment::count())->toBe(2);
+    });
+
+    it('clears the video fields when replacing a video with another type of file', function () {
+        fakeFfmpeg();
+        $video = uploadVideo();
+
+        AttachmentManager::replace(UploadedFile::fake()->image('clip.jpg'), $video);
+
+        expect($video->fresh())
+            ->width->toBeNull()
+            ->height->toBeNull()
+            ->duration->toBeNull()
+            ->poster_id->toBeNull();
+    });
+
+    it('stores the poster on the disk of the video', function () {
+        Storage::fake('other');
+        fakeMissingFfmpeg();
+        $video = AttachmentManager::setDisk('other')->upload(UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'));
+        AttachmentManager::setDisk('test');
+
+        fakeFfmpeg();
+        $poster = AttachmentManager::generatePoster($video);
+
+        expect($poster->disk)->toBe('other')
+            ->and(uploadCaption('after.vtt', "WEBVTT\n")->disk)->toBe('test');
+        Storage::disk('other')->assertExists('clip-poster.jpg');
+        Storage::disk('test')->assertMissing('clip-poster.jpg');
+    });
+
+    it('downloads a remote video once to probe it and generate its poster', function () {
+        Storage::fake('remote');
+        Config::set('filesystems.disks.remote.driver', 's3');
+        fakeFfmpeg();
+
+        AttachmentManager::setDisk('remote')->upload(UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'));
+
+        $inputs = [];
+        Process::assertRanTimes(function ($process) use (&$inputs) {
+            $command = $process->command;
+
+            if (in_array('-version', $command)) {
+                return false;
+            }
+
+            $inputs[] = $command[0] === 'ffprobe' ? end($command) : $command[array_search('-i', $command) + 1];
+
+            return true;
+        }, 2);
+
+        expect(array_unique($inputs))->toHaveCount(1);
     });
 
     it('unlinks the poster when it is deleted', function () {
@@ -143,6 +213,17 @@ describe('uploading', function () {
         AttachmentManager::delete($video->poster);
 
         expect($video->fresh()->poster_id)->toBeNull();
+    });
+
+    it('generates a poster on demand without linking it', function () {
+        fakeFfmpeg();
+        $video = uploadVideo();
+        $posterId = $video->poster_id;
+
+        $poster = AttachmentManager::generatePoster($video);
+
+        expect($poster->filename)->toBe('clip-poster-1.jpg')
+            ->and($video->fresh()->poster_id)->toBe($posterId);
     });
 });
 
@@ -192,14 +273,40 @@ describe('captions', function () {
         expect(Attachment::where('extension', 'vtt')->count())->toBe(1);
     });
 
-    it('does not overwrite an existing webvtt file with a different content', function () {
-        uploadCaption('en.vtt', "WEBVTT\n\nhand-written\n");
+    it('updates the conversion in place when the subrip file changes', function () {
+        $srt = uploadCaption('en.srt', "1\n00:00:01,000 --> 00:00:02,000\nHello\n");
+        AttachmentManager::syncCaptions($this->video, [['caption_id' => $srt->id, 'language' => 'en']]);
+        $vttId = $this->video->captions->sole()->id;
+
+        Storage::disk('test')->put('en.srt', "1\n00:00:01,000 --> 00:00:02,000\nGoodbye\n");
+        AttachmentManager::syncCaptions($this->video, [['caption_id' => $srt->id, 'language' => 'en']]);
+
+        expect($this->video->fresh()->captions->sole()->id)->toBe($vttId)
+            ->and(Attachment::where('extension', 'vtt')->count())->toBe(1)
+            ->and(Storage::disk('test')->get('en.vtt'))->toContain('Goodbye');
+    });
+
+    it('treats a webvtt file next to the subrip file as its conversion', function () {
+        $vtt = uploadCaption('en.vtt', "WEBVTT\n\nhand-written\n");
         $srt = uploadCaption('en.srt', "1\n00:00:01,000 --> 00:00:02,000\nHello\n");
 
         AttachmentManager::syncCaptions($this->video, [['caption_id' => $srt->id, 'language' => 'en']]);
 
-        expect($this->video->captions->sole()->filename)->toBe('en-1.vtt')
-            ->and(Storage::disk('test')->get('en.vtt'))->toContain('hand-written');
+        expect($this->video->captions->sole()->id)->toBe($vtt->id)
+            ->and(Storage::disk('test')->get('en.vtt'))->toContain('Hello');
+    });
+
+    it('stores the conversion on the disk of the subrip file', function () {
+        Storage::fake('other');
+        $srt = AttachmentManager::setDisk('other')->upload(UploadedFile::fake()->createWithContent('en.srt', "1\n00:00:01,000 --> 00:00:02,000\nHello\n"));
+        AttachmentManager::setDisk('test');
+
+        AttachmentManager::syncCaptions($this->video, [['caption_id' => $srt->id, 'language' => 'en']]);
+        AttachmentManager::syncCaptions($this->video, [['caption_id' => $srt->id, 'language' => 'en']]);
+
+        expect($this->video->captions->sole()->disk)->toBe('other')
+            ->and(Attachment::where('extension', 'vtt')->count())->toBe(1);
+        Storage::disk('other')->assertExists('en.vtt');
     });
 
     it('removes tracks that are no longer given', function () {
@@ -259,6 +366,38 @@ describe('rendering', function () {
     });
 });
 
+it('has no poster in the resource when the video has none', function () {
+    fakeMissingFfmpeg();
+    $video = uploadVideo();
+
+    $data = (new AttachmentResource($video->load('poster')))->resolve(new Request());
+
+    expect($data)->toHaveKey('poster')
+        ->and($data['poster'])->toBeNull();
+});
+
+describe('metadata', function () {
+    it('returns the stored dimensions and duration without running ffprobe', function () {
+        fakeMissingFfmpeg();
+        $video = uploadVideo();
+        $video->update(['width' => 1920, 'height' => 1080, 'duration' => 12.5]);
+
+        $metadata = (new Video())->getMetadata($video);
+
+        expect($metadata)
+            ->width->toBe(1920)
+            ->height->toBe(1080)
+            ->videoDuration->toBe(12.5);
+        Process::assertDidntRun(fn ($process) => $process->command[0] === 'ffprobe');
+    });
+
+    it('returns no metadata for an unprocessed video', function () {
+        fakeMissingFfmpeg();
+
+        expect((new Video())->getMetadata(uploadVideo()))->toBeFalse();
+    });
+});
+
 describe('process videos command', function () {
     it('fails when ffmpeg is unavailable', function () {
         fakeMissingFfmpeg();
@@ -285,5 +424,17 @@ describe('process videos command', function () {
         $this->artisan('attachment-library:process-videos --posters')->assertSuccessful();
 
         expect($video->fresh()->poster)->not->toBeNull();
+    });
+
+    it('queries the configured attachment class', function () {
+        fakeMissingFfmpeg();
+        uploadVideo();
+        fakeFfmpeg();
+        Config::set('attachment-library.class_mapping.attachment', CustomAttachment::class);
+        Event::fake(['eloquent.retrieved: ' . CustomAttachment::class]);
+
+        $this->artisan('attachment-library:process-videos')->assertSuccessful();
+
+        Event::assertDispatched('eloquent.retrieved: ' . CustomAttachment::class);
     });
 });
