@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
+use VanOns\LaravelAttachmentLibrary\Facades\Resizer as ResizerFacade;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 
@@ -121,4 +122,13 @@ it('returns an empty result for an unresizable attachment', function () {
     $resized = $resizer->resize();
 
     expect($resized)->toBe([]);
+});
+
+it('does not share options between facade calls', function () {
+    $attachment = createResizerTestAttachment();
+
+    ResizerFacade::src($attachment)->width(800)->resize();
+    $resized = ResizerFacade::src($attachment)->height(150)->resize();
+
+    expect($resized['url'])->not->toContain('w=800');
 });

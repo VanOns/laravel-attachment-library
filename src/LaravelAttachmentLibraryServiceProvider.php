@@ -6,10 +6,13 @@ use Illuminate\Support\Facades\Config;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use VanOns\LaravelAttachmentLibrary\Console\Commands\ProcessVideos;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver;
+use VanOns\LaravelAttachmentLibrary\Video\Ffmpeg;
 use VanOns\LaravelAttachmentLibrary\View\Components\Image;
+use VanOns\LaravelAttachmentLibrary\View\Components\Video;
 
 class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
 {
@@ -17,10 +20,11 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
     {
         $package->name('laravel-attachment-library')
             ->hasConfigFile(['attachment-library', 'glide'])
-            ->hasMigrations(['create_attachments_table', 'create_attachables_table', 'add_collection_to_attachables_table', 'add_focal_point_to_attachments_table', 'add_order_to_attachables_table'])
+            ->hasMigrations(['create_attachments_table', 'create_attachables_table', 'add_collection_to_attachables_table', 'add_focal_point_to_attachments_table', 'add_order_to_attachables_table', 'add_video_fields_to_attachments_table', 'create_attachment_captions_table'])
             ->runsMigrations()
             ->hasViews('laravel-attachment-library')
-            ->hasViewComponent('laravel-attachment-library', Image::class)
+            ->hasViewComponents('laravel-attachment-library', Image::class, Video::class)
+            ->hasCommand(ProcessVideos::class)
             ->hasRoutes('../routes/web')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
@@ -29,6 +33,11 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
                     ->setHidden(false)
                     ->askToRunMigrations();
             });
+    }
+
+    public function packageRegistered(): void
+    {
+        $this->app->singleton('attachment.ffmpeg', Ffmpeg::class);
     }
 
     /**

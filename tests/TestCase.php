@@ -38,11 +38,12 @@ abstract class TestCase extends OrchestraTestCase
     }
 
     /**
-     * The `web` middleware group requires an encryption key.
+     * The `web` middleware group requires an encryption key, and foreign keys are enforced like in production.
      */
     protected function getEnvironmentSetUp($app): void
     {
         $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+        $app['config']->set('database.connections.testing.foreign_key_constraints', true);
     }
 
     protected function afterRefreshingDatabase(): void
@@ -55,6 +56,8 @@ abstract class TestCase extends OrchestraTestCase
             require "{$migrationsPath}/add_collection_to_attachables_table.php.stub",
             require "{$migrationsPath}/add_order_to_attachables_table.php.stub",
             require "{$migrationsPath}/add_focal_point_to_attachments_table.php.stub",
+            require "{$migrationsPath}/add_video_fields_to_attachments_table.php.stub",
+            require "{$migrationsPath}/create_attachment_captions_table.php.stub",
         ];
 
         foreach ($migrations as $migration) {

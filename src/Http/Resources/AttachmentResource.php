@@ -26,6 +26,17 @@ class AttachmentResource extends JsonResource
             'alt' => $this->alt,
             'caption' => $this->caption,
             'focal_point' => $this->focal_point,
+            'width' => $this->width,
+            'height' => $this->height,
+            'duration' => $this->duration,
+            'aspect_ratio' => $this->aspect_ratio,
+            'poster' => $this->whenLoaded('poster', fn (Attachment $poster) => new AttachmentResource($poster)),
+            'captions' => $this->whenLoaded('captions', fn () => $this->captions->map(fn (Attachment $caption) => [
+                'url' => $caption->url,
+                'language' => $caption->pivot->language,
+                'label' => $caption->pivot->label,
+                'is_default' => $caption->pivot->is_default,
+            ])),
         ];
     }
 }

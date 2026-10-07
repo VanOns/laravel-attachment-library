@@ -26,7 +26,7 @@ readonly class FileMetadata
         /**
          * Video related metadata.
          */
-        public ?int $videoDuration = null,
+        public ?float $videoDuration = null,
     ) {
     }
 }

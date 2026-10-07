@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Query\Builder;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +40,14 @@ use VanOns\LaravelAttachmentLibrary\Utils\FileIdentifier;
  * @property string|null $type
  * @property string $url
  * @property array|null $focal_point
+ * @property int|null $width
+ * @property int|null $height
+ * @property float|null $duration
+ * @property float|null $aspect_ratio
+ * @property int|null $poster_id
+ * @property Attachment|null $poster
+ * @property Collection<int, Attachment> $captions
+ * @property-read AttachmentCaption $pivot Only set on attachments loaded through captions().
  *
  * @mixin AttachmentQueryBuilder
  */
@@ -59,10 +69,17 @@ class Attachment extends Model
         'focal_point',
         'title',
         'updated_by',
+        'width',
+        'height',
+        'duration',
+        'poster_id',
     ];
 
     protected $casts = [
         'focal_point' => 'json',
+        'width' => 'integer',
+        'height' => 'integer',
+        'duration' => 'float',
     ];
 
     protected static function newFactory(): Factory
@@ -76,6 +93,30 @@ class Attachment extends Model
     public function related(string $class): MorphToMany
     {
         return $this->morphedByMany($class, 'attachable');
+    }
+
+    /**
+     * Return the poster image shown before a video plays.
+     *
+     * @return BelongsTo<static, $this>
+     */
+    public function poster(): BelongsTo
+    {
+        return $this->belongsTo(static::class, 'poster_id');
+    }
+
+    /**
+     * Return the caption tracks of a video, in display order.
+     *
+     * @return BelongsToMany<static, $this, AttachmentCaption>
+     */
+    public function captions(): BelongsToMany
+    {
+        return $this->belongsToMany(static::class, 'attachment_captions', 'video_id', 'caption_id')
+            ->using(AttachmentCaption::class)
+            ->withPivot(['language', 'label', 'is_default', 'order'])
+            ->withTimestamps()
+            ->orderByPivot('order');
     }
 
     /**
@@ -147,6 +188,16 @@ class Attachment extends Model
     {
         return Attribute::make(
             get: fn () => implode('.', array_filter([$this->name, $this->extension]))
+        );
+    }
+
+    /**
+     * Return width divided by height, when both are known.
+     */
+    public function aspectRatio(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->width && $this->height ? $this->width / $this->height : null
         );
     }
 

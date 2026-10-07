@@ -8,3 +8,4 @@
    2. [Directories](manage-attachments-and-directories.md#directories)
 3. [Responsive images](responsive-images.md)
    1. [Manually resize image](responsive-images.md#manually-resize-image)
+4. [Videos](videos.md)
