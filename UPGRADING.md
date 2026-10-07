@@ -15,7 +15,7 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 
 # v1.6 to v1.7
 
-* Publish and run the new migrations: `php artisan vendor:publish --tag=laravel-attachment-library-migrations` and
+* Publish and run the new migrations: `php artisan vendor:publish --tag=attachment-library-migrations` and
   `php artisan migrate`. They add `width`, `height`, `duration` and `poster_id` to `attachments` and create the
   `attachment_captions` table.
 * If you published the configuration, add the `ffmpeg` block and the `Video` metadata retriever from the package's
