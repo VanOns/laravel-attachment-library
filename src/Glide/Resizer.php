@@ -278,26 +278,20 @@ class Resizer
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
-        if ($origin = config('glide.origin')) {
-            $url = rtrim($origin, '/') . URL::signedRoute('glide', [
-                'options' => app(OptionsParser::class)->toString([
-                    'w' => $width,
-                    'h' => $height,
-                    'fit' => $this->getFit(),
-                    'fm' => $this->format,
-                ]),
-                'path' => $this->path,
-            ], absolute: false);
-        } else {
-            $url = URL::signedRoute('glide', [
-                'options' => app(OptionsParser::class)->toString([
-                    'w' => $width,
-                    'h' => $height,
-                    'fit' => $this->getFit(),
-                    'fm' => $this->format,
-                ]),
-                'path' => $this->path,
-            ]);
+        $origin = config('glide.origin');
+
+        $url = URL::signedRoute('glide', [
+            'options' => app(OptionsParser::class)->toString([
+                'w' => $width,
+                'h' => $height,
+                'fit' => $this->getFit(),
+                'fm' => $this->format,
+            ]),
+            'path' => $this->path,
+        ], absolute: !$origin);
+
+        if ($origin) {
+            $url = rtrim($origin, '/') . $url;
         }
 
         return [
