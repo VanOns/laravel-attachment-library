@@ -2,6 +2,7 @@
 
 namespace VanOns\LaravelAttachmentLibrary\Glide;
 
+use Exception;
 use Illuminate\Support\Facades\URL;
 use VanOns\LaravelAttachmentLibrary\Enums\Fit;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
@@ -249,7 +250,7 @@ class Resizer
     /**
      * Get the path to the image file based on the source.
      *
-     * @throws \Exception If the path cannot be determined.
+     * @throws Exception If the path cannot be determined.
      */
     protected function getPath(string|Attachment $src): ?string
     {
@@ -277,9 +278,7 @@ class Resizer
         $width = $this->calculateWidth();
         $height = $this->calculateHeight();
 
-        if ($origin = config('glide.origin')) {
-            URL::useOrigin($origin);
-        }
+        $origin = config('glide.origin');
 
         $url = URL::signedRoute('glide', [
             'options' => app(OptionsParser::class)->toString([
@@ -289,7 +288,11 @@ class Resizer
                 'fm' => $this->format,
             ]),
             'path' => $this->path,
-        ]);
+        ], absolute: !$origin);
+
+        if ($origin) {
+            $url = rtrim($origin, '/') . $url;
+        }
 
         return [
             'width' => $width,
