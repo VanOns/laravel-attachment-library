@@ -9,10 +9,10 @@ use League\Glide\Filesystem\FileNotFoundException;
 use League\Glide\Filesystem\FilesystemException;
 use League\Glide\Server;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 use VanOns\LaravelAttachmentLibrary\Facades\AttachmentManager;
 use VanOns\LaravelAttachmentLibrary\Glide\OptionsParser;
 use VanOns\LaravelAttachmentLibrary\Glide\Resizer;
-use Throwable;
 
 class GlideController implements HasMiddleware
 {
@@ -47,6 +47,6 @@ class GlideController implements HasMiddleware
      */
     public static function middleware(): array
     {
-        return [ValidateSignature::class];
+        return [ValidateSignature::class . (config('glide.origin') ? ':relative' : '')];
     }
 }
