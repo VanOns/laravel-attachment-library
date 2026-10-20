@@ -44,7 +44,7 @@ class GlidePresetController
             }
 
             // Return the original file if Glide cannot parse the image.
-            return response()->file($attachment->absolute_path);
+            return $attachment->getFileResponse();
         }
     }
 

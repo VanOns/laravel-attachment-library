@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use VanOns\LaravelAttachmentLibrary\AttachmentQueryBuilder;
 use VanOns\LaravelAttachmentLibrary\Database\Factories\AttachmentFactory;
@@ -276,5 +278,26 @@ class Attachment extends Model
         return static::query()->whereIn($column, $values)
             ->get()
             ->sortBy(fn ($attachment) => $idPositions[$attachment->id] ?? PHP_INT_MAX);
+    }
+
+    public function getFileResponse(): Response
+    {
+        $disposition = AttachmentType::isRenderable($this->type)
+            ? HeaderUtils::DISPOSITION_INLINE
+            : HeaderUtils::DISPOSITION_ATTACHMENT;
+
+        if (!$this->isRemote()) {
+            return response()
+                ->file($this->absolute_path, ['Content-Type' => $this->mime_type])
+                ->setContentDisposition($disposition, $this->filename);
+        }
+
+        return Storage::disk($this->disk)
+            ->response(
+                $this->full_path,
+                $this->filename,
+                ['Content-Type' => $this->mime_type],
+                $disposition,
+            );
     }
 }
