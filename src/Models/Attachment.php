@@ -94,7 +94,7 @@ class Attachment extends Model
      */
     public function related(string $class): MorphToMany
     {
-        return $this->morphedByMany($class, 'attachable');
+        return $this->morphedByMany($class, 'attachable', foreignPivotKey: 'attachment_id');
     }
 
     /**

@@ -57,3 +57,12 @@ it('still relates the attachment class from the old model key', function () {
 
     expect($post->attachments->first())->toBeInstanceOf(CustomAttachment::class);
 });
+
+it('finds the models an attachment of the mapped class belongs to', function () {
+    Config::set('attachment-library.class_mapping.attachment', CustomAttachment::class);
+    $post = Post::create(['title' => 'Hello world']);
+    $attachment = Attachment::factory()->create();
+    $post->attachments()->attach($attachment->id);
+
+    expect(CustomAttachment::find($attachment->id)->related(Post::class)->pluck('posts.id')->all())->toBe([$post->id]);
+});
