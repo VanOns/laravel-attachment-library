@@ -216,6 +216,18 @@ it('renames a directory with files', function () {
     expect($attachment->path)->toBe($directoryNameB);
 });
 
+it('renames only the directory, not the same name further down', function () {
+    $attachmentManager = new AttachmentManager();
+    $attachmentManager->createDirectory('photos');
+    $attachmentManager->createDirectory('photos/old-photos');
+    $attachment = $attachmentManager->upload(UploadedFile::fake()->image('a.jpg'), 'photos/old-photos');
+
+    $attachmentManager->renameDirectory('photos', 'pics');
+
+    expect($attachment->refresh()->path)->toBe('pics/old-photos');
+    Storage::disk('test')->assertExists('pics/old-photos/a.jpg');
+});
+
 it('prevents a duplicate on upload', function () {
     $attachmentManager = new AttachmentManager();
     $file = UploadedFile::fake()->image(fake()->unique()->word() . '.jpg');
