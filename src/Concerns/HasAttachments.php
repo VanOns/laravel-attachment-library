@@ -10,7 +10,11 @@ trait HasAttachments
 {
     public function attachments(): MorphToMany
     {
-        return $this->morphToMany(Config::get('attachment-library.model', Attachment::class), 'attachable')->orderByPivot('order');
+        // `model` is the key from before `class_mapping`, kept for apps that set it.
+        $class = Config::get('attachment-library.model') ?? Config::get('attachment-library.class_mapping.attachment', Attachment::class);
+
+        // The pivot key would otherwise follow the class name of an extended model.
+        return $this->morphToMany($class, 'attachable', relatedPivotKey: 'attachment_id')->orderByPivot('order');
     }
 
     public function attachmentCollection(string $collection): MorphToMany

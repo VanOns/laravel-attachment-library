@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
+use VanOns\LaravelAttachmentLibrary\Test\Fixtures\CustomAttachment;
 use VanOns\LaravelAttachmentLibrary\Test\Fixtures\Post;
 
 beforeEach(function () {
@@ -38,4 +40,20 @@ it('filters the attachment collection by pivot collection', function () {
 
     expect($collection)->toHaveCount(1);
     expect($collection->first()->id)->toBe($gallery->id);
+});
+
+it('relates the attachment class from the class mapping', function () {
+    Config::set('attachment-library.class_mapping.attachment', CustomAttachment::class);
+    $post = Post::create(['title' => 'Hello world']);
+    $post->attachments()->attach(Attachment::factory()->create()->id);
+
+    expect($post->attachments->first())->toBeInstanceOf(CustomAttachment::class);
+});
+
+it('still relates the attachment class from the old model key', function () {
+    Config::set('attachment-library.model', CustomAttachment::class);
+    $post = Post::create(['title' => 'Hello world']);
+    $post->attachments()->attach(Attachment::factory()->create()->id);
+
+    expect($post->attachments->first())->toBeInstanceOf(CustomAttachment::class);
 });
