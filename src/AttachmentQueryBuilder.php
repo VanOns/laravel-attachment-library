@@ -33,8 +33,9 @@ class AttachmentQueryBuilder extends Builder
      */
     public function whereInPath(string $path): static
     {
-        return $this->where('path', '=', $path)
-            ->orWhere('path', 'LIKE', "{$path}/%");
+        return $this->where(fn ($query) => $query
+            ->where('path', '=', $path)
+            ->orWhere('path', 'LIKE', "{$path}/%"));
     }
 
     /**

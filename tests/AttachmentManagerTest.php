@@ -173,6 +173,18 @@ it('removes a directory with files', function () {
     expect($attachmentManager->files($directoryName))->toBeEmpty();
 });
 
+it('keeps files on other disks when removing a directory', function () {
+    Storage::fake('other');
+    $directoryName = fake()->unique()->word();
+    $other = Attachment::factory()->create(['disk' => 'other', 'path' => "{$directoryName}/sub"]);
+
+    $attachmentManager = new AttachmentManager();
+    $attachmentManager->createDirectory($directoryName);
+    $attachmentManager->deleteDirectory($directoryName);
+
+    expect(Attachment::find($other->id))->not->toBeNull();
+});
+
 it('renames a directory', function () {
     $attachmentManager = new AttachmentManager();
     $directoryNameA = fake()->unique()->word();
