@@ -18,7 +18,7 @@ php artisan storage:link   # also links public/img to the Glide cache (glide.lin
 @endverbatim
 
 - Publish tags: `attachment-library-config` (both `config/attachment-library.php` and `config/glide.php`), `attachment-library-migrations`, `laravel-attachment-library-views`.
-- The migrations ship as `.php.stub` files and only run once published. After an update that adds one, publish the tag again: migrations the app already has are matched by name and kept.
+- The migrations ship as `.php.stub` files and only run once published. After an update that adds one, publish the tag again: migrations the app already has are matched by name and kept. `php artisan migrate` warns about any that are not published yet.
 - Files go on `ATTACHMENTS_DISK` (default `public`). Use a disk with no other files on it, since everything on it shows up in the library.
 
 ### Public API

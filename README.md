@@ -26,6 +26,10 @@ After downloading the dependency, run the following command to install all the m
 $ php artisan attachment-library:install 
 ```
 
+After an update, publish the migrations again with `php artisan vendor:publish --tag=attachment-library-migrations`;
+the ones you already have are skipped. `php artisan migrate` warns about migrations of this package that are not
+published yet.
+
 ### Usage
 
 To enable file attachments in your Eloquent models, add the `HasAttachments` trait to your model class:

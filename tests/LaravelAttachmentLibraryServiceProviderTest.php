@@ -15,7 +15,7 @@ it('accepts a compatible attachment manager class map', function () {
     Config::set('attachment-library.class_mapping.attachment_manager', $mock::class);
 
     $serviceProvider = new LaravelAttachmentLibraryServiceProvider(Mockery::mock(Application::class));
-    $serviceProvider->packageBooted();
+    $serviceProvider->bootingPackage();
 });
 
 it('rejects an incompatible attachment manager class map', function () {

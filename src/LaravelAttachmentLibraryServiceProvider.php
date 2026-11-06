@@ -2,12 +2,14 @@
 
 namespace VanOns\LaravelAttachmentLibrary;
 
+use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Support\Facades\Config;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use VanOns\LaravelAttachmentLibrary\Console\Commands\ProcessVideos;
 use VanOns\LaravelAttachmentLibrary\Exceptions\IncompatibleClassMappingException;
+use VanOns\LaravelAttachmentLibrary\Listeners\WarnAboutUnpublishedMigrations;
 use VanOns\LaravelAttachmentLibrary\Models\Attachment;
 use VanOns\LaravelAttachmentLibrary\Observers\AttachmentObserver;
 use VanOns\LaravelAttachmentLibrary\Video\Ffmpeg;
@@ -54,5 +56,15 @@ class LaravelAttachmentLibraryServiceProvider extends PackageServiceProvider
         app()->bind('attachment.manager', $attachmentManagerClass);
 
         Config::get('attachment-library.class_mapping.attachment', Attachment::class)::observe(AttachmentObserver::class);
+    }
+
+    public function packageBooted(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->app['events']->listen(CommandFinished::class, [
+                new WarnAboutUnpublishedMigrations(static::class, $this->package->name, $this->package->shortName() . '-migrations'),
+                'handle',
+            ]);
+        }
     }
 }

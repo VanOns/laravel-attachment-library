@@ -22,6 +22,10 @@ Run the following Artisan command:
 $ php artisan attachment-library:install 
 ```
 
+After an update, publish the migrations again with `php artisan vendor:publish --tag=attachment-library-migrations`;
+the ones you already have are skipped. `php artisan migrate` warns about migrations of this package that are not
+published yet.
+
 ## Configuration
 
 By default, this package uses the `public` disk defined in `filesystems.php`. This can be overridden by adding the following
