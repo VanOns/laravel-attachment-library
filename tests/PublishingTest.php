@@ -21,7 +21,7 @@ afterEach(function () {
 
 it('names the migrations an app has neither published nor run after migrate', function () {
     expect(outputAfter('migrate'))
-        ->toContain('laravel-attachment-library has 7 migrations that are not published')
+        ->toContain('Migrations of laravel-attachment-library that are not published: ')
         ->toContain('create_attachment_captions_table')
         ->toContain('php artisan vendor:publish --tag=attachment-library-migrations')
         ->and(outputAfter('migrate:status'))->toBe('');

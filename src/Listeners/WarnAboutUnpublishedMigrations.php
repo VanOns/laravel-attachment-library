@@ -6,7 +6,6 @@ use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Console\View\Components\Factory;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 
 // Publishing migrations stays a manual step, so `migrate` names the ones an app has neither published nor run.
 class WarnAboutUnpublishedMigrations
@@ -32,11 +31,8 @@ class WarnAboutUnpublishedMigrations
         }
 
         (new Factory(new OutputStyle($event->input, $event->output)))->warn(sprintf(
-            '%s has %d %s that %s not published: %s. Publish them with `php artisan vendor:publish --tag=%s` and run `php artisan migrate` again.',
+            'Migrations of %s that are not published: %s. Run `php artisan vendor:publish --tag=%s`, then `php artisan migrate`.',
             $this->package,
-            count($missing),
-            Str::plural('migration', count($missing)),
-            count($missing) === 1 ? 'is' : 'are',
             implode(', ', $missing),
             $this->tag,
         ));
