@@ -582,7 +582,7 @@ class AttachmentManager
 
         $attachments = $this->attachmentClass::whereDisk($this->disk)->whereInPath($currentPath)->get();
         foreach ($attachments as $attachment) {
-            $attachment->update(['path' => str_replace($currentPath, $newPath, $attachment->path)]);
+            $attachment->update(['path' => Str::replaceStart($currentPath, $newPath, $attachment->path)]);
         }
 
         return new Directory($newPath);

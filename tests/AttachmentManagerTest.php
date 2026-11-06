@@ -173,6 +173,18 @@ it('removes a directory with files', function () {
     expect($attachmentManager->files($directoryName))->toBeEmpty();
 });
 
+it('keeps files on other disks when removing a directory', function () {
+    Storage::fake('other');
+    $directoryName = fake()->unique()->word();
+    $other = Attachment::factory()->create(['disk' => 'other', 'path' => "{$directoryName}/sub"]);
+
+    $attachmentManager = new AttachmentManager();
+    $attachmentManager->createDirectory($directoryName);
+    $attachmentManager->deleteDirectory($directoryName);
+
+    expect(Attachment::find($other->id))->not->toBeNull();
+});
+
 it('renames a directory', function () {
     $attachmentManager = new AttachmentManager();
     $directoryNameA = fake()->unique()->word();
@@ -202,6 +214,18 @@ it('renames a directory with files', function () {
 
     $attachment->refresh();
     expect($attachment->path)->toBe($directoryNameB);
+});
+
+it('renames only the directory, not the same name further down', function () {
+    $attachmentManager = new AttachmentManager();
+    $attachmentManager->createDirectory('photos');
+    $attachmentManager->createDirectory('photos/old-photos');
+    $attachment = $attachmentManager->upload(UploadedFile::fake()->image('a.jpg'), 'photos/old-photos');
+
+    $attachmentManager->renameDirectory('photos', 'pics');
+
+    expect($attachment->refresh()->path)->toBe('pics/old-photos');
+    Storage::disk('test')->assertExists('pics/old-photos/a.jpg');
 });
 
 it('prevents a duplicate on upload', function () {
