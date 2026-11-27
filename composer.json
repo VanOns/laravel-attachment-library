@@ -25,7 +25,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "league/glide": "^3.0",
+        "league/glide": "^4.2",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
